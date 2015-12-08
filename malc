@@ -1,6 +1,10 @@
 #!/bin/sh
 set -e
-base=$(dirname $1)/$(basename $1 .mal)
+if [ -n "$2" ] ; then
+  base="$2"
+else
+  base="$(dirname $1)/$(basename $1 .mal)"
+fi
 set -x
 ./mal malc.mal $1 > $base.ll
 opt -S -O3 $base.ll -o $base.opt.ll

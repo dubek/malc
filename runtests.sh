@@ -2,22 +2,24 @@
 
 for testfile in tests/*.mal ; do
   echo "Testing $testfile"
-  exe=$(dirname $testfile)/$(basename $testfile .mal)
-  rm -f $exe
-  ./malc $testfile
+  rm -rf tests/tmp
+  mkdir -p tests/tmp
+  exe=tests/tmp/$(basename $testfile .mal)
+  ./malc $testfile $exe
   if [[ $? != 0 ]] ; then
     echo "ERROR compiling $testfile"
     exit 1
   fi
-  $exe > /tmp/testoutput
+  $exe > tests/tmp/test_output
   if [[ $? != 0 ]] ; then
     echo "ERROR running $testfile"
     exit 1
   fi
-  diff -u <(sed -ne 's/^;; *EXPECTED: *//p' $testfile) /tmp/testoutput
+  sed -ne 's/^;; *EXPECTED: *//p' $testfile > tests/tmp/expected_output
+  diff -u tests/tmp/expected_output tests/tmp/test_output
   if [[ $? != 0 ]] ; then
     echo "FAIL results of $testfile are not what expected"
     exit 1
   fi
-  rm -f /tmp/testoutput
+  rm -rf tests/tmp
 done
