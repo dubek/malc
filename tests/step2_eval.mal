@@ -1,0 +1,21 @@
+;; Testing evaluation of arithmetic operations
+
+(_printnumber (+ 1 2))
+(_printnewline)
+;; EXPECTED: 3
+
+(_printnumber (+ 5 (* 2 3)))
+(_printnewline)
+;; EXPECTED: 11
+
+(_printnumber (- (+ 5 (* 2 3)) 3))
+(_printnewline)
+;; EXPECTED: 8
+
+(_printnumber (/ (- (+ 5 (* 2 3)) 3) 4))
+(_printnewline)
+;; EXPECTED: 2
+
+(_printnumber (/ (- (+ 515 (* 222 311)) 302) 27))
+(_printnewline)
+;; EXPECTED: 2565
