@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+base=$(basename $1 .mal)
+set -x
+./mal malc.mal $1 > $base.ll
+opt -S -O3 $base.ll -o $base.opt.ll
+llc -filetype=obj $base.opt.ll -o $base.o
+gcc $base.o -o $base

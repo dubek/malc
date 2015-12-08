@@ -1,0 +1,26 @@
+(def! inc (fn* (a) (+ a 1)))
+
+(def! last
+  (fn* [seq]
+    (if (empty? seq)
+      nil
+      (nth seq (- (count seq) 1)))))
+
+(def! number?
+  (fn* [o]
+    (not
+      (or (sequential? o)
+          (map? o)
+          (symbol? o)
+          ;; (string? o)
+          (keyword? o)))))
+
+(def! string/join
+  (fn* [separator seq]
+    (let*
+      [iter (fn* [res xs]
+              (cond
+                (empty? xs)      ""
+                (= (count xs) 1) (str res (first xs))
+                'else            (iter (str res (first xs) separator) (rest xs))))]
+      (iter "" seq))))

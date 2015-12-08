@@ -1,0 +1,90 @@
+(load-file "utils.mal")
+(load-file "instructions.mal")
+
+
+(def! *current-reg* (atom 0))
+(def! new-reg
+  (fn* []
+    (str "%r" (swap! *current-reg* inc))))
+
+(def! debug
+  (fn* [& args]
+    (apply println "; DEBUG" args)))
+
+(def! emit println)
+
+(def! compile-number
+  (fn* [result num]
+    (do
+      (emit result "= add i32" num ", 0")
+      result)))
+
+(def! compile-apply
+  (fn* [result ast]
+    (let* [funcname (first ast)
+           funcobj (get *instructions* funcname)
+           functype (first funcobj)
+           funcdetails (rest funcobj)
+           argregs (map compile-temp (rest ast))
+           argregs-with-types (map (fn* [a] (str "i32 " a)) argregs)]
+      (do
+        (debug "compile-apply:" result ast)
+        (cond
+          (= functype 'llvm-func)
+            (emit result "= call i32" (first funcdetails) "(" (string/join ", " argregs-with-types) ")")
+          'else
+            (throw (str "Unknown function '" funcname "' type: " functype)))
+        result))))
+
+(def! compile-list
+  (fn* [result ast]
+    (let* [a0 (first ast)]
+      (cond
+        (= 'do a0)
+          (let* [regs (map compile-temp (rest ast))]
+            (do
+              (emit result "= add i32" (last regs) ", 0")
+              result))
+
+        'else
+          (compile-apply result ast)))))
+
+(def! compile-temp
+  (fn* [ast]
+    (compile (new-reg) ast)))
+
+(def! compile
+  (fn* [result ast]
+    (do
+      (debug "compile:" result ast)
+      (cond
+        (number? ast) (compile-number result ast)
+        (list? ast) (compile-list result ast)))))
+
+(def! escape
+  (fn* [s]
+    (str "@\"" s "\"")))
+
+(def! emit-function
+  (fn* [name body]
+    (do
+      (emit "define private i32" (escape name) "() {")
+      (compile "%funcresult" body)
+      (emit "ret i32 %funcresult")
+      (emit "}"))))
+
+(def! compile-string
+  (fn* [s]
+    (do
+      (emit (slurp "header.ll"))
+      (emit-function "mal_prog_main" (read-string (str "(do " s ")")))
+      (emit (slurp "footer.ll")))))
+
+(def! compile-file
+  (fn* [filename]
+    (compile-string (slurp filename))))
+
+(debug "Starting...")
+(if (empty? *ARGV*)
+  (println "Usage: malc source_filename")
+  (compile-file (first *ARGV*)))
