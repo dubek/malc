@@ -8,12 +8,8 @@
 
 (def! number?
   (fn* [o]
-    (not
-      (or (sequential? o)
-          (map? o)
-          (symbol? o)
-          ;; (string? o)
-          (keyword? o)))))
+    (try* (do (+ o 0) true)
+      (catch* _ false))))
 
 (def! string/join
   (fn* [separator seq]
