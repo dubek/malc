@@ -8,6 +8,10 @@ declare void @free(i8*)
 %mal_obj = type i64
 %mal_obj_header_t = type { i32, i32, i8* }
 
+define private %mal_obj @identity(%mal_obj %obj) {
+  ret %mal_obj %obj
+}
+
 define private %mal_obj @make_integer(i64 %x) {
   %1 = shl i64 %x, 1
   %2 = or i64 %1, 1
