@@ -22,4 +22,7 @@ for testfile in tests/*.mal ; do
     exit 1
   fi
   rm -rf tests/tmp
+  echo "  ... PASS"
 done
+
+echo "Success"

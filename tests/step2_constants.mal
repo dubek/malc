@@ -1,0 +1,13 @@
+;; Testing printing of constants
+
+(_printnil)
+(_printnewline)
+;; EXPECTED: nil
+
+(_printfalse)
+(_printnewline)
+;; EXPECTED: false
+
+(_printtrue)
+(_printnewline)
+;; EXPECTED: true

@@ -5,6 +5,9 @@
     '*      ['llvm-func "@mal_mul"]
     '/      ['llvm-func "@mal_div"]
 
+    '_printnil     ['llvm-func "@mal_printnil"]
+    '_printfalse   ['llvm-func "@mal_printfalse"]
+    '_printtrue    ['llvm-func "@mal_printtrue"]
     '_printnumber  ['llvm-func "@mal_printnumber"]
     '_printnewline ['llvm-func "@mal_printnewline"]
   })

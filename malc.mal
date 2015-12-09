@@ -13,10 +13,10 @@
 
 (def! emit println)
 
-(def! compile-number
+(def! compile-integer
   (fn* [result num]
     (do
-      (emit result "= add i32" num ", 0")
+      (emit result "= call i64 @make_integer(i64" num ")")
       result)))
 
 (def! compile-apply
@@ -26,12 +26,12 @@
            functype (first funcobj)
            funcdetails (rest funcobj)
            argregs (map compile-temp (rest ast))
-           argregs-with-types (map (fn* [a] (str "i32 " a)) argregs)]
+           argregs-with-types (map (fn* [a] (str "i64 " a)) argregs)]
       (do
         (debug "compile-apply:" result ast)
         (cond
           (= functype 'llvm-func)
-            (emit result "= call i32" (first funcdetails) "(" (string/join ", " argregs-with-types) ")")
+            (emit result "= call i64" (first funcdetails) "(" (string/join ", " argregs-with-types) ")")
           'else
             (throw (str "Unknown function '" funcname "' type: " functype)))
         result))))
@@ -43,7 +43,7 @@
         (= 'do a0)
           (let* [regs (map compile-temp (rest ast))]
             (do
-              (emit result "= add i32" (last regs) ", 0")
+              (emit result "= add i64" (last regs) ", 0")
               result))
 
         'else
@@ -58,7 +58,7 @@
     (do
       (debug "compile:" result ast)
       (cond
-        (number? ast) (compile-number result ast)
+        (number? ast) (compile-integer result ast)
         (list? ast) (compile-list result ast)))))
 
 (def! escape
@@ -68,9 +68,9 @@
 (def! emit-function
   (fn* [name body]
     (do
-      (emit "define private i32" (escape name) "() {")
+      (emit "define private i64" (escape name) "() {")
       (compile "%funcresult" body)
-      (emit "ret i32 %funcresult")
+      (emit "ret i64 %funcresult")
       (emit "}"))))
 
 (def! compile-string
