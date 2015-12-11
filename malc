@@ -1,12 +1,15 @@
 #!/bin/sh
+
+#MAL=./mal
+MAL="ruby ../mal/ruby/stepA_mal.rb"
+
 set -e
 if [ -n "$2" ] ; then
   base="$2"
 else
   base="$(dirname $1)/$(basename $1 .mal)"
 fi
-#set -x
-./mal malc.mal $1 > $base.ll
+$MAL malc.mal $1 > $base.ll
 opt -S -O3 $base.ll -o $base.opt.ll
 llc -filetype=obj $base.opt.ll -o $base.o
 gcc $base.o -o $base

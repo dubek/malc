@@ -6,6 +6,10 @@ declare i8* @calloc(i32, i32)
 declare void @free(i8*)
 
 %mal_obj = type i64
+
+; i32 - obj_type
+; i32 - len (bytes/elements)
+; i8* - points to data
 %mal_obj_header_t = type { i32, i32, i8* }
 
 define private %mal_obj @identity(%mal_obj %obj) {
@@ -43,13 +47,36 @@ define private %mal_obj_header_t* @alloc_obj_header() {
   ret %mal_obj_header_t* %2
 }
 
-define private %mal_obj @make_string_obj(i32 %objtype, i32 %len_bytes) {
+define private %mal_obj @make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8* %bytes) {
   %1 = call %mal_obj_header_t* @alloc_obj_header()
-  ret %mal_obj 0
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
+  store i32 %objtype, i32* %2
+  %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
+  store i32 %len_bytes, i32* %3
+
+  ; %bytearrayptr = call i8* @calloc(i32 %len_bytes, i32 1)
+  %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  ;store i8* %bytearrayptr, i8** %4
+  store i8* %bytes, i8** %4
+
+  %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
+  ret %mal_obj %new_obj
 }
 
-define private %mal_obj @make_vector_obj(i32 %objtype, i32 %len_elements) {
-  ret %mal_obj 0
+define private %mal_obj @make_elementarray_obj(i32 %objtype, i32 %len_elements) {
+  %1 = call %mal_obj_header_t* @alloc_obj_header()
+
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
+  store i32 %objtype, i32* %2
+  %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
+  store i32 %len_elements, i32* %3
+
+  %elementarrayptr = call i8* @calloc(i32 %len_elements, i32 8)
+  %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  store i8* %elementarrayptr, i8** %4
+
+  %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
+  ret %mal_obj %new_obj
 }
 
 define private %mal_obj @mal_add(%mal_obj %a, %mal_obj %b) {
@@ -91,6 +118,17 @@ define private %mal_obj @mal_printnumber(%mal_obj %obj) {
   %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_format_d, i32 0, i32 0), i64 %1)
   %3 = call %mal_obj @make_nil()
   ret %mal_obj %3
+}
+
+@printf_format_s = private unnamed_addr constant [3 x i8] c"%s\00"
+
+define private %mal_obj @mal_printbytearray(%mal_obj %obj) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  %3 = load i8** %2
+  %4 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([3 x i8]* @printf_format_s, i32 0, i32 0), i8* %3)
+  %5 = call %mal_obj @make_nil()
+  ret %mal_obj %5
 }
 
 @printf_newline = private unnamed_addr constant [2 x i8] c"\0A\00"

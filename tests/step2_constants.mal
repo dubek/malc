@@ -11,3 +11,15 @@
 (_printtrue)
 (_printnewline)
 ;; EXPECTED: true
+
+(_printbytearray symbol1234567)
+(_printnewline)
+;; EXPECTED: symbol1234567
+
+(_printbytearray "string12345")
+(_printnewline)
+;; EXPECTED: string12345
+
+(_printbytearray :keyword123)
+(_printnewline)
+;; EXPECTED: :keyword123

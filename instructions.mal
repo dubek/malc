@@ -9,5 +9,6 @@
     '_printfalse   ['llvm-func "@mal_printfalse"]
     '_printtrue    ['llvm-func "@mal_printtrue"]
     '_printnumber  ['llvm-func "@mal_printnumber"]
+    '_printbytearray ['llvm-func "@mal_printbytearray"]
     '_printnewline ['llvm-func "@mal_printnewline"]
   })

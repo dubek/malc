@@ -41,11 +41,11 @@ flags:
  len - N number of chars in data
  data - points to char array of length N
 
-0x11 - list
-0x12 - vector
-0x13 - hash-map
+17 - 0x11 - list
+18 - 0x12 - vector
+19 - 0x13 - hash-map
 
   len = N number of elements
   data - points to array of N `mal_val_t` entries
 
-0x21 - atom - actually a vector of size 1.
+33 - 0x21 - atom - actually a vector of size 1.

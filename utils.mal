@@ -20,3 +20,14 @@
                 (= (count xs) 1) (str res (first xs))
                 'else            (iter (str res (first xs) separator) (rest xs))))]
       (iter "" seq))))
+
+(def! string/length
+  (rb* "lambda { |s| s.size }"))
+
+(def! number?
+  (fn* [o]
+    (try* (do (+ o 0) true)
+      (catch* _ false))))
+
+(def! string?
+  (rb* "lambda { |x| x.is_a?(String) }"))
