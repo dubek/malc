@@ -1,7 +1,6 @@
 (load-file "utils.mal")
 (load-file "instructions.mal")
 
-
 (def! *current-reg* (atom 0))
 (def! new-reg
   (fn* []
@@ -19,11 +18,23 @@
         (swap! *strings-list* conj def-line)
         str-global))))
 
+(def! *native-funcs* (atom {}))
+(def! add-native-func
+  (fn* [name]
+    (do
+      (swap! *native-funcs* assoc (symbol name) ['llvm-func (str "@" name)]))))
+
 (def! debug
   (fn* [& args]
     (apply println "; DEBUG" args)))
 
 (def! emit println)
+
+(def! emit-assign-to-reg
+  (fn* [result arg]
+    (do
+      (emit result "= call %mal_obj @identity(%mal_obj " arg ")")
+      result)))
 
 (def! compile-const-integer
   (fn* [result num]
@@ -41,13 +52,19 @@
         (emit result "= call %mal_obj @make_bytearray_obj(i32 " type-num ", i32 " len-reg ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))")
         result))))
 
+(def! get-func
+  (fn* [funcname]
+    (or (get *instructions* funcname)
+        (get @*native-funcs* funcname))))
+
 (def! compile-apply
-  (fn* [result ast]
+  (fn* [result ast env-type]
     (let* [funcname (first ast)
-           funcobj (get *instructions* funcname)
+           funcobj (get-func funcname)
            functype (first funcobj)
            funcdetails (rest funcobj)
-           argregs (map compile-temp (rest ast))
+           argregs (map (fn* [p] (compile (new-reg) p env-type)) (rest ast))
+           ;argregs (map compile-temp (rest ast))
            argregs-with-types (map (fn* [a] (str "%mal_obj " a)) argregs)]
       (do
         (debug "compile-apply:" result ast)
@@ -58,33 +75,81 @@
             (throw (str "Unknown function '" funcname "' type: " functype)))
         result))))
 
+(def! emit-native-func
+  (fn* [name params body]
+    (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
+      (do
+        (add-native-func name)
+        (emit "define private %mal_obj" (str "@" name) "(" (string/join ", " params-with-types) ") {")
+        (compile "%funcresult" body 'native-func)
+        (emit "ret %mal_obj %funcresult")
+        (emit "}")
+        nil))))
+
 (def! compile-list
-  (fn* [result ast]
+  (fn* [result ast env-type]
     (let* [a0 (first ast)]
       (cond
         (= 'do a0)
           (let* [regs (map compile-temp (rest ast))]
-            (do
-              (emit result "= call %mal_obj @identity(%mal_obj " (last regs) ")")
-              result))
+            (if result
+              (emit-assign-to-reg result (last regs))))
+
+        (= 'quote a0)
+          (compile-literal result (nth ast 1) env-type)
+
+        (= 'defnativefn a0)
+          (do
+            (apply emit-native-func (rest ast))
+            result)
 
         'else
-          (compile-apply result ast)))))
+          (compile-apply result ast env-type)))))
 
 (def! compile-temp
   (fn* [ast]
     (compile (new-reg) ast)))
 
-(def! compile
-  (fn* [result ast]
+(def! compile-variable
+  (fn* [result var-name env-type]
     (do
-      (debug "compile:" result ast)
+      (if (= env-type 'native-func)
+        (emit-assign-to-reg result (str "%" var-name))
+        (emit result "= TODO_get_env(var-name=" var-name ")"))
+      result)))
+
+(def! compile-literal-list
+  (fn* [result ast env-type]
+    (do
+      (emit "; literal list compiled TODO")
+      nil)))
+
+(def! compile-literal
+  (fn* [result ast env-type]
+    (do
+      (debug "compile-literal:" result ast)
       (cond
         (number? ast) (compile-const-integer result ast)
         (symbol? ast) (compile-const-bytearray result 1 ast)
         (string? ast) (compile-const-bytearray result 2 ast)
         (keyword? ast) (compile-const-bytearray result 3 ast)
-        (list? ast) (compile-list result ast)))))
+        (list? ast) (compile-literal-list result ast env-type)))))
+
+(def! literal?
+  (fn* [ast]
+    (or (number? ast)
+        (symbol? ast)
+        (string? ast)
+        (keyword? ast))))
+
+(def! compile
+  (fn* [result ast env-type]
+    (do
+      (debug "compile:" result ast)
+      (cond
+        (symbol? ast) (compile-variable result ast env-type)
+        (literal? ast) (compile-literal result ast env-type)
+        (list? ast) (compile-list result ast env-type)))))
 
 (def! escape
   (fn* [s]
@@ -94,7 +159,7 @@
   (fn* [name body]
     (do
       (emit "define private %mal_obj" (escape name) "() {")
-      (compile "%funcresult" body)
+      (compile "%funcresult" body 'mal)
       (emit "ret %mal_obj %funcresult")
       (emit "}"))))
 
@@ -106,6 +171,7 @@
   (fn* [s]
     (do
       (emit (slurp "header.ll"))
+      (compile nil (read-string (str "(do " (slurp "nativefuncs.mal") ")")) 'native-func)
       (emit-function "mal_prog_main" (read-string (str "(do " s ")")))
       (emit-strings-list)
       (emit (slurp "footer.ll")))))

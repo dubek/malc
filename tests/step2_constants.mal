@@ -12,7 +12,7 @@
 (_printnewline)
 ;; EXPECTED: true
 
-(_printbytearray symbol1234567)
+(_printbytearray 'symbol1234567)
 (_printnewline)
 ;; EXPECTED: symbol1234567
 

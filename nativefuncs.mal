@@ -1,0 +1,2 @@
+(defnativefn double [x]
+  (* x 2))
