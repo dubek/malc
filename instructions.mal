@@ -10,7 +10,7 @@
     'false?        ['llvm-func "@mal_false_q"]
     'true?         ['llvm-func "@mal_true_q"]
 
-    '_integer_equal_q ['llvm-func "@mal_integer_equal_q"]
+    '_integer_equal? ['llvm-func "@mal_integer_equal_q"]
 
     '_get_type     ['llvm-func "@mal_get_type"]
     '_get_len      ['llvm-func "@mal_get_len"]

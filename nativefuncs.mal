@@ -1,10 +1,15 @@
-(defnativefn double [x]
-  (* x 2))
+(defnativefn mal_and mal_and [x y] (if x y false))
+(defnativefn mal_or mal_or [x y] (if x true y))
 
-(defnativefn mal_and [x y] (if x y false))
-(defnativefn mal_or [x y] (if x true y))
+(defnativefn symbol?  symbol_Q  [obj] (_integer_equal? 17 (_get_type obj)))
+(defnativefn string?  string_Q  [obj] (_integer_equal? 18 (_get_type obj)))
+(defnativefn keyword? keyword_Q [obj] (_integer_equal? 19 (_get_type obj)))
+(defnativefn list?    list_Q    [obj] (_integer_equal? 33 (_get_type obj)))
+(defnativefn vector?  vector_Q  [obj] (_integer_equal? 34 (_get_type obj)))
+(defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
+(defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
 
-(defnativefn equal_q [a b]
+(defnativefn equal? equal_Q [a b]
   (if (nil? a)
     (nil? b)
     (if (true? a)
@@ -12,18 +17,10 @@
       (if (false? a)
         (false? b)
         (if (integer? a)
-          (mal_and (integer? b) (_integer_equal_q a b))
+          (mal_and (integer? b) (_integer_equal? a b))
           false))))) ; TODO compare strings, lists, maps, ...
 
-(defnativefn symbol_q  [obj] (equal_q 17 (_get_type obj)))
-(defnativefn string_q  [obj] (equal_q 18 (_get_type obj)))
-(defnativefn keyword_q [obj] (equal_q 19 (_get_type obj)))
-(defnativefn list_q    [obj] (equal_q 33 (_get_type obj)))
-(defnativefn vector_q  [obj] (equal_q 34 (_get_type obj)))
-(defnativefn map_q     [obj] (equal_q 35 (_get_type obj)))
-(defnativefn atom_q    [obj] (equal_q 49 (_get_type obj)))
-
-(defnativefn printobj [obj]
+(defnativefn printobj printobj [obj]
   (if (nil? obj)
     (_printbytearray "nil")
     (if (false? obj)
@@ -32,18 +29,18 @@
         (_printbytearray "true")
         (if (integer? obj)
           (_printnumber obj)
-          (if (symbol_q obj)
+          (if (symbol? obj)
             (_printbytearray obj)
-            (if (keyword_q obj)
+            (if (keyword? obj)
               (_printbytearray obj)
-              (if (string_q obj)
+              (if (string? obj)
                 (do
                   (_printbytearray "{") ; "\"")
                   (_printbytearray obj)
                   (_printbytearray "}")) ; "\""))
                 (_printbytearray "DONT-KNOW-HOW-TO-PRINT")))))))))
 
-(defnativefn printlnobj [obj]
+(defnativefn printlnobj printlnobj [obj]
   (do
     (printobj obj)
     (_printnewline)))

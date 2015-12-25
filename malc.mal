@@ -30,9 +30,9 @@
 
 (def! *native-funcs* (atom {}))
 (def! add-native-func
-  (fn* [name]
+  (fn* [name llvm-name]
     (do
-      (swap! *native-funcs* assoc (symbol name) ['llvm-func (str "@" name)]))))
+      (swap! *native-funcs* assoc (symbol name) ['llvm-func (str "@" llvm-name)]))))
 
 (def! debug
   (fn* [& args]
@@ -108,11 +108,11 @@
         result))))
 
 (def! emit-native-func
-  (fn* [name params body]
+  (fn* [name llvm-name params body]
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
-        (add-native-func name)
-        (emit "define private %mal_obj" (str "@" name) "(" (string/join ", " params-with-types) ") {")
+        (add-native-func name llvm-name)
+        (emit "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
         (compile "%funcresult" body 'native-func)
         (emit "ret %mal_obj %funcresult")
         (emit "}")
