@@ -40,3 +40,12 @@
 
 (printlnobj (first []))
 ;; EXPECTED: nil
+
+(printlnobj (count (_concat_elementarrays 33 '(55 44 33 22) [66 44])))
+;; EXPECTED: 6
+
+(printlnobj (_get_elementarray_item (_concat_elementarrays 33 '(55 44 33 22) [66 44]) 2))
+;; EXPECTED: 33
+
+(printlnobj (_get_elementarray_item (_concat_elementarrays 33 '(55 44 33 22) [66 44]) 4))
+;; EXPECTED: 66

@@ -4,6 +4,7 @@ declare i32 @printf(i8*, ...)
 declare i32 @exit(i32)
 declare i8* @calloc(i32, i32)
 declare void @free(i8*)
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 
 %mal_obj = type i64
 
@@ -65,13 +66,25 @@ IfConst:
   ret %mal_obj %obj
 }
 
-define private %mal_obj @mal_get_len(%mal_obj %obj) {
+define private i32 @mal_get_len_i32(%mal_obj %obj) {
   %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
   %3 = load i32* %2
-  %4 = sext i32 %3 to i64
-  %5 = call %mal_obj @make_integer(i64 %4)
-  ret %mal_obj %5
+  ret i32 %3
+}
+
+define private %mal_obj @mal_get_len(%mal_obj %obj) {
+  %1 = call i32 @mal_get_len_i32(%mal_obj %obj)
+  %2 = sext i32 %1 to i64
+  %3 = call %mal_obj @make_integer(i64 %2)
+  ret %mal_obj %3
+}
+
+define private i8* @mal_get_array_ptr_i8(%mal_obj %obj) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  %3 = load i8** %2
+  ret i8* %3
 }
 
 define private %mal_obj @mal_integer_equal_q(%mal_obj %a, %mal_obj %b) {
@@ -168,6 +181,25 @@ define private %mal_obj @mal_get_elementarray_item(%mal_obj %obj, %mal_obj %item
   %6 = getelementptr %mal_obj* %4, i64 %5
   %7 = load %mal_obj* %6
   ret %mal_obj %7
+}
+
+define private %mal_obj @mal_concat_elementarrays(%mal_obj %objtype, %mal_obj %a, %mal_obj %b) {
+  %a_len = call i32 @mal_get_len_i32(%mal_obj %a)
+  %a_len_bytes = mul nsw i32 %a_len, 8
+  %a_arrayptr = call i8* @mal_get_array_ptr_i8(%mal_obj %a)
+  %b_len = call i32 @mal_get_len_i32(%mal_obj %b)
+  %b_len_bytes = mul nsw i32 %b_len, 8
+  %b_arrayptr = call i8* @mal_get_array_ptr_i8(%mal_obj %b)
+  %new_len_i32 = add nsw i32 %a_len, %b_len
+  %new_len_i64 = sext i32 %new_len_i32 to i64
+  %new_len = call %mal_obj @make_integer(i64 %new_len_i64)
+  %new_obj = call %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %new_len)
+  %new_arrayptr = call i8* @mal_get_array_ptr_i8(%mal_obj %new_obj)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %new_arrayptr, i8* %a_arrayptr, i32 %a_len_bytes, i32 0, i1 0)
+  ; call void @llvm.memcpy(i8* %new_arrayptr, i8* %a_arrayptr, i32 %a_len_bytes, i32 0, i1 0)
+  %next_arrayptr = getelementptr i8* %new_arrayptr, i32 %a_len_bytes
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %next_arrayptr, i8* %b_arrayptr, i32 %b_len_bytes, i32 0, i1 0)
+  ret %mal_obj %new_obj
 }
 
 define private %mal_obj @mal_add(%mal_obj %a, %mal_obj %b) {

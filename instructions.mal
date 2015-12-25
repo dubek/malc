@@ -17,6 +17,7 @@
     '_get_len               ['llvm-func "@mal_get_len"]
     '_set_elementarray_item ['llvm-func "@mal_set_elementarray_item"]
     '_get_elementarray_item ['llvm-func "@mal_get_elementarray_item"]
+    '_concat_elementarrays  ['llvm-func "@mal_concat_elementarrays"]
 
     '_printnumber  ['llvm-func "@mal_printnumber"]
     '_printraw     ['llvm-func "@mal_printraw"]
