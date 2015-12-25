@@ -17,9 +17,6 @@
     '_set_elementarray_item ['llvm-func "@mal_set_elementarray_item"]
     '_get_elementarray_item ['llvm-func "@mal_get_elementarray_item"]
 
-    '_printnil     ['llvm-func "@mal_printnil"]
-    '_printfalse   ['llvm-func "@mal_printfalse"]
-    '_printtrue    ['llvm-func "@mal_printtrue"]
     '_printnumber  ['llvm-func "@mal_printnumber"]
     '_printbytearray ['llvm-func "@mal_printbytearray"]
     '_printnewline ['llvm-func "@mal_printnewline"]

@@ -225,28 +225,4 @@ define private %mal_obj @mal_printnewline() {
   ret %mal_obj %2
 }
 
-@printf_nil = private unnamed_addr constant [4 x i8] c"nil\00"
-
-define private %mal_obj @mal_printnil() {
-  %1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([4 x i8]* @printf_nil, i32 0, i32 0))
-  %2 = call %mal_obj @make_nil()
-  ret %mal_obj %2
-}
-
-@printf_false = private unnamed_addr constant [6 x i8] c"false\00"
-
-define private %mal_obj @mal_printfalse() {
-  %1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([6 x i8]* @printf_false, i32 0, i32 0))
-  %2 = call %mal_obj @make_nil()
-  ret %mal_obj %2
-}
-
-@printf_true = private unnamed_addr constant [5 x i8] c"true\00"
-
-define private %mal_obj @mal_printtrue() {
-  %1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_true, i32 0, i32 0))
-  %2 = call %mal_obj @make_nil()
-  ret %mal_obj %2
-}
-
 ; End of malc header.ll

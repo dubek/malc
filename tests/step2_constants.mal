@@ -1,15 +1,12 @@
 ;; Testing printing of constants
 
-(_printnil)
-(_printnewline)
+(printlnobj nil)
 ;; EXPECTED: nil
 
-(_printfalse)
-(_printnewline)
+(printlnobj false)
 ;; EXPECTED: false
 
-(_printtrue)
-(_printnewline)
+(printlnobj true)
 ;; EXPECTED: true
 
 (_printbytearray 'symbol1234567)

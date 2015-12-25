@@ -25,11 +25,11 @@
 
 (defnativefn printobj [obj]
   (if (nil? obj)
-    (_printnil)
+    (_printbytearray "nil")
     (if (false? obj)
-      (_printfalse)
+      (_printbytearray "false")
       (if (true? obj)
-        (_printtrue)
+        (_printbytearray "true")
         (if (integer? obj)
           (_printnumber obj)
           (if (symbol_q obj)
