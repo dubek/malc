@@ -12,12 +12,14 @@
 
     '_integer_equal? ['llvm-func "@mal_integer_equal_q"]
 
-    '_get_type     ['llvm-func "@mal_get_type"]
-    '_get_len      ['llvm-func "@mal_get_len"]
+    '_make_elementarray_obj ['llvm-func "@mal_make_elementarray_obj"]
+    '_get_type              ['llvm-func "@mal_get_type"]
+    '_get_len               ['llvm-func "@mal_get_len"]
     '_set_elementarray_item ['llvm-func "@mal_set_elementarray_item"]
     '_get_elementarray_item ['llvm-func "@mal_get_elementarray_item"]
 
     '_printnumber  ['llvm-func "@mal_printnumber"]
+    '_printraw     ['llvm-func "@mal_printraw"]
     '_printbytearray ['llvm-func "@mal_printbytearray"]
     '_printnewline ['llvm-func "@mal_printnewline"]
   })

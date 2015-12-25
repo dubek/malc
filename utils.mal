@@ -31,7 +31,7 @@
   (fn* [func seq]
     (let* [loop-func
            (fn* [remaining_seq index result]
-             (if (empty? seq)
+             (if (empty? remaining_seq)
                result
-               (loop-func (rest remaining_seq) (inc index) (concat result [func (car remaining_seq) index]))))]
+               (loop-func (rest remaining_seq) (inc index) (concat result [(func (first remaining_seq) index)]))))]
       (loop-func seq 0 '()))))

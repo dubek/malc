@@ -1,6 +1,31 @@
 (defnativefn mal_and mal_and [x y] (if x y false))
 (defnativefn mal_or mal_or [x y] (if x true y))
 
+(defnativefn make-list make_list [len] (_make_elementarray_obj 33 len))
+(defnativefn make-vector make_vector [len] (_make_elementarray_obj 34 len))
+(defnativefn make-map make_map [len] (_make_elementarray_obj 35 len))
+
+(defnativefn cons cons [x y]
+  (_set_elementarray_item (_set_elementarray_item (make-list 2) 0 x) 1 y))
+
+
+
+;(defnativefn copy-list copy_list [lst]
+;  (do
+;    (make-list (_get_len lst))
+;    (_set_elementarray_item 
+
+;(defnativefn make-list-args make_list_args [args]
+;  (do
+;    (make-list (_get_len args))
+;    (_set_elementarray_item 
+;
+;    '_set_elementarray_item ['llvm-func "@mal_set_elementarray_item"]
+;    '_get_elementarray_item ['llvm-func "@mal_get_elementarray_item"]
+;    (m
+;    
+;    ))
+
 (defnativefn symbol?  symbol_Q  [obj] (_integer_equal? 17 (_get_type obj)))
 (defnativefn string?  string_Q  [obj] (_integer_equal? 18 (_get_type obj)))
 (defnativefn keyword? keyword_Q [obj] (_integer_equal? 19 (_get_type obj)))
@@ -9,7 +34,7 @@
 (defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
 
-(defnativefn equal? equal_Q [a b]
+(defnativefn = equal_Q [a b]
   (if (nil? a)
     (nil? b)
     (if (true? a)
@@ -19,6 +44,13 @@
         (if (integer? a)
           (mal_and (integer? b) (_integer_equal? a b))
           false))))) ; TODO compare strings, lists, maps, ...
+
+(defnativefn count count [obj] (_get_len obj))
+(defnativefn empty? empty_Q [obj] (= 0 (count obj)))
+(defnativefn first first [seq]
+  (if (empty? seq)
+    nil
+    (_get_elementarray_item seq 0)))
 
 (defnativefn printobj printobj [obj]
   (if (nil? obj)
@@ -38,7 +70,9 @@
                   (_printbytearray "{") ; "\"")
                   (_printbytearray obj)
                   (_printbytearray "}")) ; "\""))
-                (_printbytearray "DONT-KNOW-HOW-TO-PRINT")))))))))
+                (do
+                  (_printbytearray "DONT-KNOW-HOW-TO-PRINT:raw=")
+                  (_printraw obj))))))))))
 
 (defnativefn printlnobj printlnobj [obj]
   (do

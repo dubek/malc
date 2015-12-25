@@ -111,7 +111,7 @@ define private %mal_obj_header_t* @alloc_obj_header() {
   ret %mal_obj_header_t* %2
 }
 
-define private %mal_obj @make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8* %bytes) {
+define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8* %bytes) {
   %1 = call %mal_obj_header_t* @alloc_obj_header()
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
   store i32 %objtype, i32* %2
@@ -120,22 +120,27 @@ define private %mal_obj @make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8* %b
 
   ; %bytearrayptr = call i8* @calloc(i32 %len_bytes, i32 1)
   %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
-  ;store i8* %bytearrayptr, i8** %4
   store i8* %bytes, i8** %4
 
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
 }
 
-define private %mal_obj @make_elementarray_obj(i32 %objtype, i32 %len_elements) {
+define private %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %len_elements) {
+  %objtype.i64 = call i64 @mal_integer_to_raw(%mal_obj %objtype)
+  %objtype.i32 = trunc i64 %objtype.i64 to i32
+
+  %len_elements.i64 = call i64 @mal_integer_to_raw(%mal_obj %len_elements)
+  %len_elements.i32 = trunc i64 %len_elements.i64 to i32
+
   %1 = call %mal_obj_header_t* @alloc_obj_header()
 
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
-  store i32 %objtype, i32* %2
+  store i32 %objtype.i32, i32* %2
   %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
-  store i32 %len_elements, i32* %3
+  store i32 %len_elements.i32, i32* %3
 
-  %elementarrayptr = call i8* @calloc(i32 %len_elements, i32 8)
+  %elementarrayptr = call i8* @calloc(i32 %len_elements.i32, i32 8)
   %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
   store i8* %elementarrayptr, i8** %4
 
@@ -143,7 +148,7 @@ define private %mal_obj @make_elementarray_obj(i32 %objtype, i32 %len_elements) 
   ret %mal_obj %new_obj
 }
 
-define private void @mal_set_elementarray_item(%mal_obj %obj, %mal_obj %item_index, %mal_obj %new_item) {
+define private %mal_obj @mal_set_elementarray_item(%mal_obj %obj, %mal_obj %item_index, %mal_obj %new_item) {
   %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
   %3 = bitcast i8** %2 to %mal_obj**
@@ -151,7 +156,7 @@ define private void @mal_set_elementarray_item(%mal_obj %obj, %mal_obj %item_ind
   %5 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
   %6 = getelementptr %mal_obj* %4, i64 %5
   store %mal_obj %new_item, %mal_obj* %6
-  ret void
+  ret %mal_obj %obj
 }
 
 define private %mal_obj @mal_get_elementarray_item(%mal_obj %obj, %mal_obj %item_index) {
@@ -201,6 +206,13 @@ define private %mal_obj @mal_div(%mal_obj %a, %mal_obj %b) {
 
 define private %mal_obj @mal_printnumber(%mal_obj %obj) {
   %1 = call i64 @mal_integer_to_raw(%mal_obj %obj)
+  %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_format_d, i32 0, i32 0), i64 %1)
+  %3 = call %mal_obj @make_nil()
+  ret %mal_obj %3
+}
+
+define private %mal_obj @mal_printraw(%mal_obj %obj) {
+  %1 = bitcast %mal_obj %obj to i64 
   %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_format_d, i32 0, i32 0), i64 %1)
   %3 = call %mal_obj @make_nil()
   ret %mal_obj %3
