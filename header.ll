@@ -16,6 +16,70 @@ define private %mal_obj @identity(%mal_obj %obj) {
   ret %mal_obj %obj
 }
 
+define private %mal_obj @bool_to_mal(i1 %cond) {
+  br i1 %cond, label %IfEqual, label %IfUnequal
+IfEqual:
+  %1 = call %mal_obj @make_true()
+  ret %mal_obj %1
+IfUnequal:
+  %2 = call %mal_obj @make_false()
+  ret %mal_obj %2
+}
+
+define private %mal_obj @mal_integer_q(%mal_obj %obj) {
+  %1 = and i64 %obj, 1
+  %2 = icmp eq i64 %1, 1
+  %3 = call %mal_obj @bool_to_mal(i1 %2)
+  ret %mal_obj %3
+}
+
+define private %mal_obj @mal_nil_q(%mal_obj %obj) {
+  %1 = icmp eq i64 %obj, 2
+  %2 = call %mal_obj @bool_to_mal(i1 %1)
+  ret %mal_obj %2
+}
+
+define private %mal_obj @mal_false_q(%mal_obj %obj) {
+  %1 = icmp eq i64 %obj, 4
+  %2 = call %mal_obj @bool_to_mal(i1 %1)
+  ret %mal_obj %2
+}
+
+define private %mal_obj @mal_true_q(%mal_obj %obj) {
+  %1 = icmp eq i64 %obj, 6
+  %2 = call %mal_obj @bool_to_mal(i1 %1)
+  ret %mal_obj %2
+}
+
+define private %mal_obj @mal_get_type(%mal_obj %obj) {
+  %1 = icmp ugt i64 %obj, 6
+  br i1 %1, label %IfObj, label %IfConst
+IfObj:
+  %2 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %3 = getelementptr %mal_obj_header_t* %2, i32 0, i32 0
+  %4 = load i32* %3
+  %5 = sext i32 %4 to i64
+  %6 = call %mal_obj @make_integer(i64 %5)
+  ret %mal_obj %6
+IfConst:
+  ret %mal_obj %obj
+}
+
+define private %mal_obj @mal_get_len(%mal_obj %obj) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
+  %3 = load i32* %2
+  %4 = sext i32 %3 to i64
+  %5 = call %mal_obj @make_integer(i64 %4)
+  ret %mal_obj %5
+}
+
+define private %mal_obj @mal_integer_equal_q(%mal_obj %a, %mal_obj %b) {
+  %1 = icmp eq %mal_obj %a, %b
+  %2 = call %mal_obj @bool_to_mal(i1 %1)
+  ret %mal_obj %2
+}
+
 define private %mal_obj @make_integer(i64 %x) {
   %1 = shl i64 %x, 1
   %2 = or i64 %1, 1
@@ -77,6 +141,28 @@ define private %mal_obj @make_elementarray_obj(i32 %objtype, i32 %len_elements) 
 
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
+}
+
+define private void @mal_set_elementarray_item(%mal_obj %obj, %mal_obj %item_index, %mal_obj %new_item) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  %3 = bitcast i8** %2 to %mal_obj**
+  %4 = load %mal_obj** %3
+  %5 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
+  %6 = getelementptr %mal_obj* %4, i64 %5
+  store %mal_obj %new_item, %mal_obj* %6
+  ret void
+}
+
+define private %mal_obj @mal_get_elementarray_item(%mal_obj %obj, %mal_obj %item_index) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  %3 = bitcast i8** %2 to %mal_obj**
+  %4 = load %mal_obj** %3
+  %5 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
+  %6 = getelementptr %mal_obj* %4, i64 %5
+  %7 = load %mal_obj* %6
+  ret %mal_obj %7
 }
 
 define private %mal_obj @mal_add(%mal_obj %a, %mal_obj %b) {

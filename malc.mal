@@ -6,6 +6,16 @@
   (fn* []
     (str "%r" (swap! *current-reg* inc))))
 
+(def! *current-stack-reg* (atom 0))
+(def! new-stack-reg
+  (fn* []
+    (str "%sr" (swap! *current-stack-reg* inc))))
+
+(def! *current-label* (atom 0))
+(def! new-label
+  (fn* []
+    (str "label" (swap! *current-label* inc))))
+
 (def! *current-string-global* (atom 0))
 (def! *strings-list* (atom []))
 (def! add-string
@@ -30,6 +40,10 @@
 
 (def! emit println)
 
+(def! emit-label
+  (fn* [name]
+    (emit (str name ":"))))
+
 (def! emit-assign-to-reg
   (fn* [result arg]
     (do
@@ -40,6 +54,24 @@
   (fn* [result num]
     (do
       (emit result "= call %mal_obj @make_integer(i64" num ")")
+      result)))
+
+(def! compile-nil
+  (fn* [result]
+    (do
+      (emit result "= call %mal_obj @make_nil()")
+      result)))
+
+(def! compile-true
+  (fn* [result]
+    (do
+      (emit result "= call %mal_obj @make_true()")
+      result)))
+
+(def! compile-false
+  (fn* [result]
+    (do
+      (emit result "= call %mal_obj @make_false()")
       result)))
 
 (def! compile-const-bytearray
@@ -90,13 +122,42 @@
   (fn* [result ast env-type]
     (let* [a0 (first ast)]
       (cond
+        (= 'quote a0)
+          (compile-literal result (nth ast 1) env-type)
+
         (= 'do a0)
-          (let* [regs (map compile-temp (rest ast))]
+          (let* [regs (map (fn* [a] (compile-temp a env-type)) (rest ast))]
             (if result
               (emit-assign-to-reg result (last regs))))
 
-        (= 'quote a0)
-          (compile-literal result (nth ast 1) env-type)
+        (= 'if a0)
+          (let* [cond-exp (nth ast 1)
+                 true-exp (nth ast 2)
+                 false-exp (if (> (count ast) 3) (nth ast 3) nil)
+                 result-stack-reg (new-stack-reg)
+                 cond-reg (new-reg)
+                 tmp-true-result (new-reg)
+                 tmp-false-result (new-reg)
+                 true-label (new-label)
+                 false-label (new-label)
+                 after-if-label (new-label)]
+            (do
+              (emit result-stack-reg "= alloca %mal_obj")
+              (compile cond-reg cond-exp env-type)
+              (emit "switch %mal_obj" cond-reg ", label" (str "%" true-label)
+                    "[ %mal_obj 2, label" (str "%" false-label) "\n"
+                    "%mal_obj 4, label" (str "%" false-label) "]")
+              (emit-label true-label)
+              (compile tmp-true-result true-exp env-type)
+              (emit "store %mal_obj" tmp-true-result ", %mal_obj*" result-stack-reg)
+              (emit "br label" (str "%" after-if-label))
+              (emit-label false-label)
+              (compile tmp-false-result false-exp env-type)
+              (emit "store %mal_obj" tmp-false-result ", %mal_obj*" result-stack-reg)
+              (emit "br label" (str "%" after-if-label))
+              (emit-label after-if-label)
+              (emit result "= load %mal_obj*" result-stack-reg)
+              result))
 
         (= 'defnativefn a0)
           (do
@@ -107,8 +168,8 @@
           (compile-apply result ast env-type)))))
 
 (def! compile-temp
-  (fn* [ast]
-    (compile (new-reg) ast)))
+  (fn* [ast env-type]
+    (compile (new-reg) ast env-type)))
 
 (def! compile-variable
   (fn* [result var-name env-type]
@@ -120,24 +181,42 @@
 
 (def! compile-literal-list
   (fn* [result ast env-type]
-    (do
-      (emit "; literal list compiled TODO")
-      nil)))
+    (let* [len (count ast)
+           itemsregs (map (fn* [p] (compile-literal (new-reg) p env-type)) ast)
+           type-num 33]
+      (do
+        (emit len-reg "= add i32 0," len)
+        (emit result "= call %mal_obj @make_elementarray_obj(i32 " type-num ", i32 " len-reg ")")
+        (map-with-index (fn* [r index]
+                          (let* [index-reg (new-reg)]
+                            (do
+                              (compile-const-integer index-reg index)
+                              (emit "call void @mal_set_elementarray_item(%mal_obj" result
+                                    ", %mal_obj" index-reg
+                                    ", %mal_obj" r ")"))))
+                        itemsregs)
+        result))))
 
 (def! compile-literal
   (fn* [result ast env-type]
     (do
       (debug "compile-literal:" result ast)
       (cond
+        (nil? ast) (compile-nil result)
+        (true? ast) (compile-true result)
+        (false? ast) (compile-false result)
         (number? ast) (compile-const-integer result ast)
-        (symbol? ast) (compile-const-bytearray result 1 ast)
-        (string? ast) (compile-const-bytearray result 2 ast)
-        (keyword? ast) (compile-const-bytearray result 3 ast)
+        (symbol? ast) (compile-const-bytearray result 17 ast)
+        (string? ast) (compile-const-bytearray result 18 ast)
+        (keyword? ast) (compile-const-bytearray result 19 ast)
         (list? ast) (compile-literal-list result ast env-type)))))
 
 (def! literal?
   (fn* [ast]
-    (or (number? ast)
+    (or (nil? ast)
+        (true? ast)
+        (false? ast)
+        (number? ast)
         (symbol? ast)
         (string? ast)
         (keyword? ast))))

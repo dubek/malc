@@ -24,10 +24,14 @@
 (def! string/length
   (rb* "lambda { |s| s.size }"))
 
-(def! number?
-  (fn* [o]
-    (try* (do (+ o 0) true)
-      (catch* _ false))))
-
 (def! string?
   (rb* "lambda { |x| x.is_a?(String) }"))
+
+(def! map-with-index
+  (fn* [func seq]
+    (let* [loop-func
+           (fn* [remaining_seq index result]
+             (if (empty? seq)
+               result
+               (loop-func (rest remaining_seq) (inc index) (concat result [func (car remaining_seq) index]))))]
+      (loop-func seq 0 '()))))

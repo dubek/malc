@@ -1,2 +1,49 @@
 (defnativefn double [x]
   (* x 2))
+
+(defnativefn mal_and [x y] (if x y false))
+(defnativefn mal_or [x y] (if x true y))
+
+(defnativefn equal_q [a b]
+  (if (nil? a)
+    (nil? b)
+    (if (true? a)
+      (true? b)
+      (if (false? a)
+        (false? b)
+        (if (integer? a)
+          (mal_and (integer? b) (_integer_equal_q a b))
+          false))))) ; TODO compare strings, lists, maps, ...
+
+(defnativefn symbol_q  [obj] (equal_q 17 (_get_type obj)))
+(defnativefn string_q  [obj] (equal_q 18 (_get_type obj)))
+(defnativefn keyword_q [obj] (equal_q 19 (_get_type obj)))
+(defnativefn list_q    [obj] (equal_q 33 (_get_type obj)))
+(defnativefn vector_q  [obj] (equal_q 34 (_get_type obj)))
+(defnativefn map_q     [obj] (equal_q 35 (_get_type obj)))
+(defnativefn atom_q    [obj] (equal_q 49 (_get_type obj)))
+
+(defnativefn printobj [obj]
+  (if (nil? obj)
+    (_printnil)
+    (if (false? obj)
+      (_printfalse)
+      (if (true? obj)
+        (_printtrue)
+        (if (integer? obj)
+          (_printnumber obj)
+          (if (symbol_q obj)
+            (_printbytearray obj)
+            (if (keyword_q obj)
+              (_printbytearray obj)
+              (if (string_q obj)
+                (do
+                  (_printbytearray "{") ; "\"")
+                  (_printbytearray obj)
+                  (_printbytearray "}")) ; "\""))
+                (_printbytearray "DONT-KNOW-HOW-TO-PRINT")))))))))
+
+(defnativefn printlnobj [obj]
+  (do
+    (printobj obj)
+    (_printnewline)))
