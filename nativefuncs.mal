@@ -1,3 +1,21 @@
+(defmacro! and
+  (fn* (& xs)
+    (if (empty? xs)
+      true
+      (if (= 1 (count xs))
+        (first xs)
+        `(let* (and_FIXME ~(first xs))
+          (if and_FIXME (and ~@(rest xs)) and_FIXME))))))
+
+(defmacro! or
+  (fn* (& xs)
+    (if (empty? xs)
+      nil
+      (if (= 1 (count xs))
+        (first xs)
+        `(let* (or_FIXME ~(first xs))
+          (if or_FIXME or_FIXME (or ~@(rest xs))))))))
+
 (defnativefn mal_and mal_and [x y] (if x y false))
 (defnativefn mal_or mal_or [x y] (if x true y))
 

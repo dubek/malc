@@ -112,10 +112,13 @@
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
         (add-native-func name llvm-name)
+        (emit "")
+        (emit "")
         (emit "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
         (compile "%funcresult" body 'native-func)
         (emit "ret %mal_obj %funcresult")
         (emit "}")
+        (emit "")
         nil))))
 
 (def! compile-if
@@ -148,11 +151,15 @@
         (emit result "= load %mal_obj*" result-stack-reg)
         result))))
 
-
 (def! compile-list
   (fn* [result ast env-type]
     (let* [a0 (first ast)]
       (cond
+        (= 'defmacro! a0)
+          (do
+            (eval ast)
+            result)
+
         (= 'quote a0)
           (compile-literal result (nth ast 1) env-type)
 
@@ -237,15 +244,22 @@
         (string? ast)
         (keyword? ast))))
 
+(def! expand-macros
+  (fn* [ast]
+    (if (list? ast)
+      (eval (list 'macroexpand ast))
+      ast)))
+
 (def! compile
   (fn* [result ast env-type]
-    (do
-      (debug "compile:" result ast)
+    (let* [exp-ast (expand-macros ast)
+           x1 (debug "compile:" ast)
+           x2 (debug "exp-ast:" exp-ast)]
       (cond
-        (symbol? ast) (compile-variable result ast env-type)
-        (literal? ast) (compile-literal result ast env-type)
-        (list? ast) (compile-list result ast env-type)
-        (vector? ast) (compile-vector result ast env-type)))))
+        (symbol? exp-ast) (compile-variable result exp-ast env-type)
+        (literal? exp-ast) (compile-literal result exp-ast env-type)
+        (list? exp-ast) (compile-list result exp-ast env-type)
+        (vector? exp-ast) (compile-vector result exp-ast env-type)))))
 
 (def! escape
   (fn* [s]
@@ -254,10 +268,13 @@
 (def! emit-function
   (fn* [name body]
     (do
+      (emit "")
+      (emit "")
       (emit "define private %mal_obj" (escape name) "() {")
       (compile "%funcresult" body 'mal)
       (emit "ret %mal_obj %funcresult")
       (emit "}"))))
+      (emit "")
 
 (def! emit-strings-list
   (fn* []

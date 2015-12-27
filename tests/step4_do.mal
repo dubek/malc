@@ -20,6 +20,24 @@
 (_printnewline)
 ;; EXPECTED: 222
 
+(printlnobj (cond (integer? "abc") 111 (symbol? "abc") 222 :else 333))
+;; EXPECTED: 333
+
+; (printlnobj (and 4 5 6 7))
+; ;; EXPECTED: 7
+;
+; (printlnobj (and 4 nil 6 7))
+; ;; EXPECTED: nil
+;
+; (printlnobj (or 4 5 6 7))
+; ;; EXPECTED: 7
+;
+; (printlnobj (or 4 nil 6 7))
+; ;; EXPECTED: 4
+;
+; (printlnobj (or nil false))
+; ;; EXPECTED: false
+
 (printlnobj (if (integer? "abc") 111))
 ;; EXPECTED: nil
 
