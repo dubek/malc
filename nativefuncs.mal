@@ -26,24 +26,6 @@
 (defnativefn cons cons [x y]
   (_set_elementarray_item (_set_elementarray_item (make-list 2) 0 x) 1 y))
 
-
-
-;(defnativefn copy-list copy_list [lst]
-;  (do
-;    (make-list (_get_len lst))
-;    (_set_elementarray_item 
-
-;(defnativefn make-list-args make_list_args [args]
-;  (do
-;    (make-list (_get_len args))
-;    (_set_elementarray_item 
-;
-;    '_set_elementarray_item ['llvm-func "@mal_set_elementarray_item"]
-;    '_get_elementarray_item ['llvm-func "@mal_get_elementarray_item"]
-;    (m
-;    
-;    ))
-
 (defnativefn symbol?  symbol_Q  [obj] (_integer_equal? 17 (_get_type obj)))
 (defnativefn string?  string_Q  [obj] (_integer_equal? 18 (_get_type obj)))
 (defnativefn keyword? keyword_Q [obj] (_integer_equal? 19 (_get_type obj)))
@@ -52,27 +34,24 @@
 (defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
 
+(defnativefn equal_bytearray_content? equal_bytearray_content_Q [a b]
+  (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b)))
+
 (defnativefn equal_bytearray_types? equal_bytearray_types_Q [a b]
-  (if (mal_and (symbol? a) (symbol? b))
-    (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b))
-    (if (mal_and (string? a) (string? b))
-      (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b))
-      (if (mal_and (keyword? a) (keyword? b))
-        (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b))
-        false))))
+  (cond
+    (mal_and (symbol? a) (symbol? b)) (equal_bytearray_content? a b)
+    (mal_and (string? a) (string? b)) (equal_bytearray_content? a b)
+    (mal_and (keyword? a) (keyword? b)) (equal_bytearray_content? a b)
+    :else false))
 
 (defnativefn = equal_Q [a b]
-  (if (nil? a)
-    (nil? b)
-    (if (true? a)
-      (true? b)
-      (if (false? a)
-        (false? b)
-        (if (integer? a)
-          (mal_and (integer? b) (_integer_equal? a b))
-          (if (mal_or (mal_or (symbol? a) (string? a)) (keyword? a))
-            (equal_bytearray_types? a b)
-            false)))))) ; TODO vector/list/map/atom
+  (cond
+    (nil? a) (nil? b)
+    (true? a) (true? b)
+    (false? a) (false? b)
+    (integer? a) (mal_and (integer? b) (_integer_equal? a b))
+    (mal_or (mal_or (symbol? a) (string? a)) (keyword? a)) (equal_bytearray_types? a b)
+    :else false)) ; TODO vector/list/map/atom
 
 (defnativefn count count [obj] (_get_len obj))
 (defnativefn empty? empty_Q [obj] (= 0 (count obj)))
@@ -82,26 +61,22 @@
     (_get_elementarray_item seq 0)))
 
 (defnativefn printobj printobj [obj]
-  (if (nil? obj)
-    (_printbytearray "nil")
-    (if (false? obj)
-      (_printbytearray "false")
-      (if (true? obj)
-        (_printbytearray "true")
-        (if (integer? obj)
-          (_printnumber obj)
-          (if (symbol? obj)
-            (_printbytearray obj)
-            (if (keyword? obj)
-              (_printbytearray obj)
-              (if (string? obj)
-                (do
-                  (_printbytearray "{") ; "\"")
-                  (_printbytearray obj)
-                  (_printbytearray "}")) ; "\""))
-                (do
-                  (_printbytearray "DONT-KNOW-HOW-TO-PRINT:raw=")
-                  (_printraw obj))))))))))
+  (cond
+    (nil? obj) (_printbytearray "nil")
+    (false? obj) (_printbytearray "false")
+    (true? obj) (_printbytearray "true")
+    (integer? obj) (_printnumber obj)
+    (symbol? obj) (_printbytearray obj)
+    (keyword? obj) (_printbytearray obj)
+    (string? obj)
+      (do
+        (_printbytearray "{") ; "\"")
+        (_printbytearray obj)
+        (_printbytearray "}")) ; "\""))
+    :else
+      (do
+        (_printbytearray "DONT-KNOW-HOW-TO-PRINT:raw=")
+        (_printraw obj))))
 
 (defnativefn printlnobj printlnobj [obj]
   (do
