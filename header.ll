@@ -2,6 +2,7 @@
 
 declare i32 @printf(i8*, ...)
 declare i32 @exit(i32)
+declare i32 @memcmp(i8*, i8*, i32);
 declare i8* @calloc(i32, i32)
 declare void @free(i8*)
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
@@ -137,6 +138,26 @@ define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8
 
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
+}
+
+; Compare two bytearrays. Length must be equal.
+define private %mal_obj @mal_bytearray_equal_q(%mal_obj %a, %mal_obj %b) {
+  %a_hdr_ptr = inttoptr %mal_obj %a to %mal_obj_header_t*
+  %a_len_ptr = getelementptr %mal_obj_header_t* %a_hdr_ptr, i32 0, i32 1
+  %a_len = load i32* %a_len_ptr
+  %a_buf_ptr = getelementptr %mal_obj_header_t* %a_hdr_ptr, i32 0, i32 2
+  %a_buf = load i8** %a_buf_ptr
+
+  %b_hdr_ptr = inttoptr %mal_obj %b to %mal_obj_header_t*
+  %b_len_ptr = getelementptr %mal_obj_header_t* %b_hdr_ptr, i32 0, i32 1
+  %b_len = load i32* %b_len_ptr
+  %b_buf_ptr = getelementptr %mal_obj_header_t* %b_hdr_ptr, i32 0, i32 2
+  %b_buf = load i8** %b_buf_ptr
+
+  %res = call i32 @memcmp(i8* %a_buf, i8* %b_buf, i32 %a_len)
+  %is_equal = icmp eq i32 %res, 0
+  %mal_bool_res = call %mal_obj @bool_to_mal(i1 %is_equal)
+  ret %mal_obj %mal_bool_res
 }
 
 define private %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %len_elements) {

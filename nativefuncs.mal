@@ -34,6 +34,15 @@
 (defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
 
+(defnativefn equal_bytearray_types? equal_bytearray_types_Q [a b]
+  (if (mal_and (symbol? a) (symbol? b))
+    (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b))
+    (if (mal_and (string? a) (string? b))
+      (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b))
+      (if (mal_and (keyword? a) (keyword? b))
+        (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b))
+        false))))
+
 (defnativefn = equal_Q [a b]
   (if (nil? a)
     (nil? b)
@@ -43,7 +52,9 @@
         (false? b)
         (if (integer? a)
           (mal_and (integer? b) (_integer_equal? a b))
-          false))))) ; TODO compare strings, lists, maps, ...
+          (if (mal_or (mal_or (symbol? a) (string? a)) (keyword? a))
+            (equal_bytearray_types? a b)
+            false)))))) ; TODO vector/list/map/atom
 
 (defnativefn count count [obj] (_get_len obj))
 (defnativefn empty? empty_Q [obj] (= 0 (count obj)))
