@@ -1,0 +1,26 @@
+(printlnobj (get (hash-map-from-list [:a 11 :b 22 :c 33]) :a) false)
+;; EXPECTED: 11
+(printlnobj (get (hash-map-from-list [:a 11 :b 22 :c 33]) :b) false)
+;; EXPECTED: 22
+(printlnobj (get (hash-map-from-list [:a 11 :b 22 :c 33]) :c) false)
+;; EXPECTED: 33
+(printlnobj (get (hash-map-from-list [:a 11 :b 22 :c 33]) :z) false)
+;; EXPECTED: nil
+
+(printlnobj (contains? (hash-map-from-list [:a 11 :b 22 :c 33]) :b) false)
+;; EXPECTED: true
+(printlnobj (contains? (hash-map-from-list [:a 11 :b 22 :c 33]) :z) false)
+;; EXPECTED: false
+
+(printlnobj (hash-map-from-list [:a 11 :b 22 :c 33]) false)
+;; EXPECTED: {:a 11 :b 22 :c 33}
+
+(printlnobj (assoc1 (hash-map-from-list [:a 11 :b 22 :c 33]) :d 44) false)
+;; EXPECTED: {:a 11 :b 22 :c 33 :d 44}
+(printlnobj (assoc1 (hash-map-from-list [:a 11 :b 22 :c 33]) :a 55) false)
+;; EXPECTED: {:b 22 :c 33 :a 55}
+
+(printlnobj (dissoc1 (hash-map-from-list [:a 11 :b 22 :c 33]) :b) false)
+;; EXPECTED: {:a 11 :c 33}
+(printlnobj (dissoc1 (hash-map-from-list [:a 11 :b 22 :c 33]) :z) false)
+;; EXPECTED: {:a 11 :b 22 :c 33}

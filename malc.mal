@@ -112,13 +112,15 @@
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
         (add-native-func name llvm-name)
-        (emit "")
-        (emit "")
-        (emit "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
-        (compile "%funcresult" body 'native-func)
-        (emit "ret %mal_obj %funcresult")
-        (emit "}")
-        (emit "")
+        (if body
+          (do
+            (emit "")
+            (emit "")
+            (emit "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
+            (compile "%funcresult" body 'native-func)
+            (emit "ret %mal_obj %funcresult")
+            (emit "}")
+            (emit "")))
         nil))))
 
 (def! compile-if

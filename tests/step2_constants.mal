@@ -1,22 +1,19 @@
 ;; Testing printing of constants
 
-(printlnobj nil)
+(printlnobj nil false)
 ;; EXPECTED: nil
 
-(printlnobj false)
+(printlnobj false false)
 ;; EXPECTED: false
 
-(printlnobj true)
+(printlnobj true false)
 ;; EXPECTED: true
 
-(_printbytearray 'symbol1234567)
-(_printnewline)
+(printlnobj 'symbol1234567 false)
 ;; EXPECTED: symbol1234567
 
-(_printbytearray "string12345")
-(_printnewline)
+(printlnobj "string12345" false)
 ;; EXPECTED: string12345
 
-(_printbytearray :keyword123)
-(_printnewline)
+(printlnobj :keyword123 false)
 ;; EXPECTED: :keyword123

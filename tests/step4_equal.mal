@@ -1,21 +1,21 @@
-(printlnobj (= 1 1))
+(printlnobj (= 1 1) false)
 ;; EXPECTED: true
-(printlnobj (= 1 2))
+(printlnobj (= 1 2) false)
 ;; EXPECTED: false
-(printlnobj (= 1 "1"))
+(printlnobj (= 1 "1") false)
 ;; EXPECTED: false
 
-(printlnobj (= "abc" "abc"))
+(printlnobj (= "abc" "abc") false)
 ;; EXPECTED: true
-(printlnobj (= "abc" "abcd"))
+(printlnobj (= "abc" "abcd") false)
 ;; EXPECTED: false
-(printlnobj (= "abc" "abd"))
+(printlnobj (= "abc" "abd") false)
 ;; EXPECTED: false
-(printlnobj (= 'abc "abc"))
+(printlnobj (= 'abc "abc") false)
 ;; EXPECTED: false
-(printlnobj (= :abc "abc"))
+(printlnobj (= :abc "abc") false)
 ;; EXPECTED: false
-(printlnobj (= 'abc 'abc))
+(printlnobj (= 'abc 'abc) false)
 ;; EXPECTED: true
-(printlnobj (= :abc :abc))
+(printlnobj (= :abc :abc) false)
 ;; EXPECTED: true

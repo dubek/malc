@@ -18,6 +18,7 @@
 
 (defnativefn mal_and mal_and [x y] (if x y false))
 (defnativefn mal_or mal_or [x y] (if x true y))
+(defnativefn mal_not mal_not [x] (if x false true))
 
 (defnativefn make-list make_list [len] (_make_elementarray_obj 33 len))
 (defnativefn make-vector make_vector [len] (_make_elementarray_obj 34 len))
@@ -60,7 +61,60 @@
     nil
     (_get_elementarray_item seq 0)))
 
-(defnativefn printobj printobj [obj]
+(defnativefn nth nth [seq index]
+  ; TODO check boundaries
+  (_get_elementarray_item seq index))
+
+(defnativefn hash-map-from-list hash_map_from_list [lst]
+  (_concat_elementarrays 35 lst []))
+
+(defnativefn get-helper get_helper [hm key index]
+  (if (= (_get_len hm) index)
+    nil
+    (if (= (nth hm index) key)
+      (nth hm (+ 1 index))
+      (get-helper hm key (+ 2 index)))))
+
+(defnativefn get get [hm key]
+  (get-helper hm key 0))
+
+(defnativefn contains-helper contains_helper [hm key index]
+  (if (= (_get_len hm) index)
+    false
+    (if (= (nth hm index) key)
+      true
+      (contains-helper hm key (+ 2 index)))))
+
+(defnativefn contains? contains_Q [hm key]
+  (contains-helper hm key 0))
+
+(defnativefn dissoc1-helper dissoc1_helper [hm key index result]
+  (if (= (_get_len hm) index)
+    result
+    (if (= (nth hm index) key)
+      (dissoc1-helper hm key (+ 2 index) result)
+      (dissoc1-helper hm key (+ 2 index) (_concat_elementarrays 35 result [(nth hm index) (nth hm (+ 1 index))])))))
+
+(defnativefn dissoc1 dissoc1 [hm key]
+  (if (contains? hm key)
+    (dissoc1-helper hm key 0 [])
+    hm))
+
+(defnativefn assoc1 assoc1 [hm key val]
+  (_concat_elementarrays 35 (dissoc1 hm key) [key val]))
+
+;; forward declaration
+(defnativefn printobj printobj [obj readable])
+
+(defnativefn printelements printelements [obj readable index]
+  (if (= (_get_len obj) index)
+    nil
+    (do
+      (if (mal_not (= index 0)) (printobj " " readable))
+      (printobj (nth obj index) readable)
+      (printelements obj readable (+ 1 index)))))
+
+(defnativefn printobj printobj [obj readable]
   (cond
     (nil? obj) (_printbytearray "nil")
     (false? obj) (_printbytearray "false")
@@ -69,16 +123,23 @@
     (symbol? obj) (_printbytearray obj)
     (keyword? obj) (_printbytearray obj)
     (string? obj)
+      (if readable
+        (do
+          (_printbytearray "<") ; "\"")
+          (_printbytearray obj)
+          (_printbytearray ">")) ; "\""))
+        (_printbytearray obj))
+    (map? obj)
       (do
         (_printbytearray "{") ; "\"")
-        (_printbytearray obj)
+        (printelements obj readable 0)
         (_printbytearray "}")) ; "\""))
     :else
       (do
         (_printbytearray "DONT-KNOW-HOW-TO-PRINT:raw=")
         (_printraw obj))))
 
-(defnativefn printlnobj printlnobj [obj]
+(defnativefn printlnobj printlnobj [obj readable]
   (do
-    (printobj obj)
+    (printobj obj readable)
     (_printnewline)))
