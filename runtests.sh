@@ -1,6 +1,7 @@
 #!/bin/bash
 
-for testfile in tests/*.mal ; do
+test_one() {
+  testfile="$1"
   echo "Testing $testfile"
   rm -rf tests/tmp
   mkdir -p tests/tmp
@@ -23,6 +24,14 @@ for testfile in tests/*.mal ; do
   fi
   rm -rf tests/tmp
   echo "  ... PASS"
-done
+}
+
+if [ -z "$1" ] ; then
+  for testfile in tests/*.mal ; do
+    test_one $testfile
+  done
+else
+  test_one $1
+fi
 
 echo "Success"
