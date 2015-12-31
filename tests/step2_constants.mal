@@ -15,5 +15,8 @@
 (printlnobj "string12345" false)
 ;; EXPECTED: string12345
 
+(printlnobj "string12345" true)
+;; EXPECTED: "string12345"
+
 (printlnobj :keyword123 false)
 ;; EXPECTED: :keyword123

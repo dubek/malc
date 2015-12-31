@@ -125,9 +125,9 @@
     (string? obj)
       (if readable
         (do
-          (_printbytearray "<") ; "\"")
+          (_printchar 34) ; quote
           (_printbytearray obj)
-          (_printbytearray ">")) ; "\""))
+          (_printchar 34)) ; quote
         (_printbytearray obj))
     (map? obj)
       (do
@@ -138,6 +138,9 @@
       (do
         (_printbytearray "DONT-KNOW-HOW-TO-PRINT:raw=")
         (_printraw obj))))
+
+(defnativefn _printnewline _printnewline []
+  (_printchar 10))
 
 (defnativefn printlnobj printlnobj [obj readable]
   (do

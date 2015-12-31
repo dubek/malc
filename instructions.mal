@@ -20,8 +20,8 @@
     '_concat_elementarrays  ['llvm-func "@mal_concat_elementarrays"]
     '_bytearray_equal?      ['llvm-func "@mal_bytearray_equal_q"]
 
-    '_printnumber  ['llvm-func "@mal_printnumber"]
-    '_printraw     ['llvm-func "@mal_printraw"]
+    '_printchar      ['llvm-func "@mal_printchar"]
+    '_printnumber    ['llvm-func "@mal_printnumber"]
+    '_printraw       ['llvm-func "@mal_printraw"]
     '_printbytearray ['llvm-func "@mal_printbytearray"]
-    '_printnewline ['llvm-func "@mal_printnewline"]
   })

@@ -1,5 +1,6 @@
 ; Start of malc header.ll
 
+declare i32 @putchar(i32)
 declare i32 @printf(i8*, ...)
 declare i32 @exit(i32)
 declare i32 @memcmp(i8*, i8*, i32);
@@ -265,7 +266,7 @@ define private %mal_obj @mal_printnumber(%mal_obj %obj) {
 }
 
 define private %mal_obj @mal_printraw(%mal_obj %obj) {
-  %1 = bitcast %mal_obj %obj to i64 
+  %1 = bitcast %mal_obj %obj to i64
   %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_format_d, i32 0, i32 0), i64 %1)
   %3 = call %mal_obj @make_nil()
   ret %mal_obj %3
@@ -282,12 +283,12 @@ define private %mal_obj @mal_printbytearray(%mal_obj %obj) {
   ret %mal_obj %5
 }
 
-@printf_newline = private unnamed_addr constant [2 x i8] c"\0A\00"
-
-define private %mal_obj @mal_printnewline() {
-  %1 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([2 x i8]* @printf_newline, i32 0, i32 0))
-  %2 = call %mal_obj @make_nil()
-  ret %mal_obj %2
+define private %mal_obj @mal_printchar(%mal_obj %obj) {
+  %1 = call i64 @mal_integer_to_raw(%mal_obj %obj)
+  %2 = trunc i64 %1 to i32
+  %3 = call i32 @putchar(i32 %2)
+  %4 = call %mal_obj @make_nil()
+  ret %mal_obj %4
 }
 
 ; End of malc header.ll
