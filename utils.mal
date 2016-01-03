@@ -8,7 +8,7 @@
 
 (def! number?
   (fn* [o]
-    (try* (do (+ o 0) true)
+    (try* (= o (+ o 0))
       (catch* _ false))))
 
 (def! string/join
@@ -25,7 +25,8 @@
   (rb* "lambda { |s| s.size }"))
 
 (def! string?
-  (rb* "lambda { |x| x.is_a?(String) }"))
+  (fn* [o]
+    (= o (str o))))
 
 (def! map-with-index
   (fn* [func seq]
