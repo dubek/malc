@@ -1,0 +1,5 @@
+(printlnobj ( atom  7 ) false)
+;; EXPECTED: (atom 7)
+
+(printlnobj (deref (atom 9)) false)
+;; EXPECTED: 9
