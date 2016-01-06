@@ -1,0 +1,14 @@
+(def! a 11)
+(printlnobj a false)
+;; EXPECTED: 11
+
+(def! b (+ 20 3))
+(printlnobj (+ a b) false)
+;; EXPECTED: 34
+
+(def! a 9)
+(printlnobj a false)
+;; EXPECTED: 9
+
+(printlnobj (+ a b) false)
+;; EXPECTED: 32

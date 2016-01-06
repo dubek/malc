@@ -44,6 +44,12 @@
   (fn* [name]
     (emit (str name ":"))))
 
+(def! emit-assign
+  (fn* [result & args]
+    (do
+      (apply emit result "=" args)
+      result)))
+
 (def! emit-assign-to-reg
   (fn* [result arg]
     (do
@@ -162,6 +168,11 @@
             (eval ast)
             result)
 
+        (= 'def! a0)
+          (let* [var-reg (compile-literal (new-reg) (nth ast 1) env-type)
+                 val-reg (compile (new-reg) (nth ast 2) env-type)]
+            (emit-assign result "call %mal_obj @env_set(%mal_obj %env, %mal_obj " var-reg ", %mal_obj " val-reg ")"))
+
         (= 'quote a0)
           (compile-literal result (nth ast 1) env-type)
 
@@ -187,11 +198,13 @@
 
 (def! compile-variable
   (fn* [result var-name env-type]
-    (do
-      (if (= env-type 'native-func)
+    (cond
+      (= env-type 'native-func)
         (emit-assign-to-reg result (str "%" var-name))
-        (emit result "= TODO_get_env(var-name=" var-name ")"))
-      result)))
+
+      (= env-type 'mal-env)
+        (let* [var-name-reg (compile-literal (new-reg) var-name env-type)]
+          (emit-assign result "call %mal_obj @env_get(%mal_obj %env, %mal_obj" var-name-reg ")")))))
 
 (def! compile-elementarray
   (fn* [result type-num itemsregs env-type]
@@ -272,10 +285,10 @@
     (do
       (emit "")
       (emit "")
-      (emit "define private %mal_obj" (escape name) "() {")
-      (compile "%funcresult" body 'mal)
+      (emit "define private %mal_obj" (escape name) "(%mal_obj %env) {")
+      (compile "%funcresult" body 'mal-env)
       (emit "ret %mal_obj %funcresult")
-      (emit "}"))))
+      (emit "} ; end of function" name))))
       (emit "")
 
 (def! emit-strings-list

@@ -118,6 +118,43 @@
     (_set_elementarray_item atom 0 val)
     val))
 
+;;
+;; Env
+;;
+(defnativefn env-bind-vars env_bind_vars [res binds exprs index]
+  (if (= (count binds) index)
+    res
+    (env-bind-vars (assoc1 res (nth binds index) (nth exprs index)) binds exprs (+ 1 index))))
+
+(defnativefn new-env new_env [outer binds exprs]
+  (cons outer (env-bind-vars (make-map 0) binds exprs 0)))
+
+(defnativefn new-root-env new_root_env []
+  (new-env nil [] []))
+
+(defnativefn env-outer env_outer [env] (first env))
+(defnativefn env-data env_data [env] (nth env 1))
+
+(defnativefn env-find env_find [env k]
+  (if (contains? (env-data env) k)
+    env
+    (if (env-outer env)
+      (env-find (env-outer env) k)
+      nil)))
+
+(defnativefn env-get-helper env_get_helper [found-env k]
+  (if found-env
+    (get (env-data found-env) k)
+    nil))
+
+(defnativefn env-get env_get [env k]
+  (env-get-helper (env-find env k) k))
+
+(defnativefn env-set env_set [env k v]
+  (do
+    (_set_elementarray_item env 1 (assoc1 (env-data env) k v))
+    v))
+
 ;; forward declaration
 (defnativefn printobj printobj [obj readable])
 
