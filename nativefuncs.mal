@@ -16,6 +16,36 @@
         `(let* (or_FIXME ~(first xs))
           (if or_FIXME or_FIXME (or ~@(rest xs))))))))
 
+;;
+;; Declare LLVM functions (implemented in header.ll)
+;;
+(defnativefn + mal_add [a b])
+(defnativefn - mal_sub [a b])
+(defnativefn * mal_mul [a b])
+(defnativefn / mal_div [a b])
+(defnativefn _integer_equal? mal_integer_equal_q [a b])
+
+(defnativefn integer? mal_integer_q [obj])
+(defnativefn nil?     mal_nil_q [obj])
+(defnativefn false?   mal_false_q [obj])
+(defnativefn true?    mal_true_q [obj])
+
+(defnativefn _make_elementarray_obj mal_make_elementarray_obj [objtype len_elements])
+(defnativefn _get_type              mal_get_type [obj])
+(defnativefn _get_len               mal_get_len [obj])
+(defnativefn _set_elementarray_item mal_set_elementarray_item [obj item_index new_item])
+(defnativefn _get_elementarray_item mal_get_elementarray_item [obj item_index])
+(defnativefn _concat_elementarrays  mal_concat_elementarrays [objtype a b])
+(defnativefn _bytearray_equal?      mal_bytearray_equal_q [a b])
+
+(defnativefn _printchar      mal_printchar [obj])
+(defnativefn _printnumber    mal_printnumber [obj])
+(defnativefn _printraw       mal_printraw [obj])
+(defnativefn _printbytearray mal_printbytearray [obj])
+
+;;
+;; Simple boolean operations for native functions
+;;
 (defnativefn mal_and mal_and [x y] (if x y false))
 (defnativefn mal_or mal_or [x y] (if x true y))
 (defnativefn mal_not mal_not [x] (if x false true))

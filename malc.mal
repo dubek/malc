@@ -1,5 +1,4 @@
 (load-file "utils.mal")
-(load-file "instructions.mal")
 
 (def! *current-reg* (atom 0))
 (def! new-reg
@@ -92,8 +91,7 @@
 
 (def! get-func
   (fn* [funcname]
-    (or (get *instructions* funcname)
-        (get @*native-funcs* funcname))))
+    (get @*native-funcs* funcname)))
 
 (def! compile-apply
   (fn* [result ast env-type]
