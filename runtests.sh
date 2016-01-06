@@ -28,10 +28,10 @@ test_one() {
 
 if [ -z "$1" ] ; then
   for testfile in tests/*.mal ; do
-    test_one $testfile
+    time test_one $testfile
   done
 else
-  test_one $1
+  time test_one $1
 fi
 
 echo "Success"
