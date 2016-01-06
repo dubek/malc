@@ -48,4 +48,19 @@ flags:
   len = N number of elements
   data - points to array of N `mal_val_t` entries
 
-49 - 0x31 - atom - actually a vector of size 1.
+49 - 0x31 - atom - implemented as a vector of size 1.
+
+### Env
+
+Env is implemented as a vector with two elements:
+
+* Index 0: `outer` - an outer environment, or `nil` if this is the root environment
+* Index 1: `data` - a hash-map from variables names to their values
+
+### Func
+
+Func is implemented as a vector with 3 elements:
+
+* Index 0: `arg_names` - Vector of symbols (argument names)
+* Index 1: `env` - Env
+* Index 2: `func_ptr` - Function pointer (of type: %mal_obj fn(%mal_obj env))

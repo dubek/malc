@@ -31,8 +31,27 @@
 (def! map-with-index
   (fn* [func seq]
     (let* [loop-func
-           (fn* [remaining_seq index result]
-             (if (empty? remaining_seq)
-               result
-               (loop-func (rest remaining_seq) (inc index) (concat result [(func (first remaining_seq) index)]))))]
+           (fn* [remaining-seq seq-index map-result]
+             (if (empty? remaining-seq)
+               map-result
+               (loop-func (rest remaining-seq) (inc seq-index) (concat map-result [(func (first remaining-seq) seq-index)]))))]
       (loop-func seq 0 '()))))
+
+(def! vector-map-with-index
+  (fn* [func seq]
+    (let* [loop-func
+           (fn* [remaining-seq seq-index map-result]
+             (if (empty? remaining-seq)
+               map-result
+               (loop-func (rest remaining-seq) (inc seq-index) (conj map-result (func (first remaining-seq) seq-index)))))]
+      (loop-func seq 0 []))))
+
+(def! zip
+  (fn* [a b]
+    (let* [helper
+           (fn* [remain-a remain-b zip-result]
+             (let* [both-empty (if (empty? remain-a) (empty? remain-b) false)]
+               (if both-empty
+                 zip-result
+                 (helper (rest remain-a) (rest remain-b) (conj zip-result [(first remain-a) (first remain-b)])))))]
+      (helper a b []))))

@@ -1,0 +1,3 @@
+(fn* [x] (+ 333 x))
+(printlnobj 111 false)
+;; EXPECTED: 111

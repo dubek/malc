@@ -15,6 +15,16 @@
   (fn* []
     (str "label" (swap! *current-label* inc))))
 
+(def! *current-func-name* (atom 0))
+(def! new-func-name
+  (fn* []
+    (str "@malfunc" (swap! *current-func-name* inc))))
+
+(def! *functions-definitions-list* (atom []))
+(def! add-function-definition
+  (fn* [code-str]
+    (swap! *functions-definitions-list* conj code-str)))
+
 (def! *current-string-global* (atom 0))
 (def! *strings-list* (atom []))
 (def! add-string
@@ -33,61 +43,72 @@
     (do
       (swap! *native-funcs* assoc (symbol name) ['llvm-func (str "@" llvm-name)]))))
 
-(def! debug
+(def! debug-line
   (fn* [& args]
-    (apply println "; DEBUG" args)))
+    (do
+      (apply line "; DEBUG" args))))
 
-(def! emit println)
+(def! append-lines
+  (fn* [& args]
+    (apply vector args)))
+    ;(string/join "\n" (concat args [""]))))
 
-(def! emit-label
+(def! append-lines-seq
+  (fn* [seq]
+    (apply vector seq)))
+    ;(string/join "\n" (concat seq [""]))))
+
+(def! line
+  (fn* [& args]
+    (string/join " " args)))
+
+(def! emit
+  (fn* [& args]
+    (if (empty? args)
+      nil
+      (let* [f (first args)]
+        (if (sequential? f)
+          (map emit f)
+          (do
+            (println f)
+            (emit (rest args))))))))
+
+(def! line-label
   (fn* [name]
-    (emit (str name ":"))))
+    (line (str name ":"))))
 
-(def! emit-assign
+(def! line-assign
   (fn* [result & args]
-    (do
-      (apply emit result "=" args)
-      result)))
+    (apply line result "=" args)))
 
-(def! emit-assign-to-reg
+(def! line-assign-to-reg
   (fn* [result arg]
-    (do
-      (emit result "= call %mal_obj @identity(%mal_obj " arg ")")
-      result)))
+    (line-assign result "call %mal_obj @identity(%mal_obj " arg ")")))
 
 (def! compile-const-integer
   (fn* [result num]
-    (do
-      (emit result "= call %mal_obj @make_integer(i64" num ")")
-      result)))
+    (line-assign result "call %mal_obj @make_integer(i64" num ")")))
 
 (def! compile-nil
   (fn* [result]
-    (do
-      (emit result "= call %mal_obj @make_nil()")
-      result)))
+    (line-assign result "call %mal_obj @make_nil()")))
 
 (def! compile-true
   (fn* [result]
-    (do
-      (emit result "= call %mal_obj @make_true()")
-      result)))
+    (line-assign result "call %mal_obj @make_true()")))
 
 (def! compile-false
   (fn* [result]
-    (do
-      (emit result "= call %mal_obj @make_false()")
-      result)))
+    (line-assign result "call %mal_obj @make_false()")))
 
 (def! compile-const-bytearray
   (fn* [result type-num body]
     (let* [len-reg (new-reg)
            str-len (inc (string/length body))
            str-global (add-string body)]
-      (do
-        (emit len-reg "= add i32 0," str-len)
-        (emit result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " len-reg ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))")
-        result))))
+      (append-lines
+        (line len-reg "= add i32 0," str-len)
+        (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " len-reg ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))")))))
 
 (def! get-func
   (fn* [funcname]
@@ -99,33 +120,34 @@
            funcobj (get-func funcname)
            functype (first funcobj)
            funcdetails (rest funcobj)
-           argregs (map (fn* [p] (compile (new-reg) p env-type)) (rest ast))
-           ;argregs (map compile-temp (rest ast))
+           argregs (map new-reg (rest ast))
+           argregs-with-exprs (zip argregs (rest ast))
            argregs-with-types (map (fn* [a] (str "%mal_obj " a)) argregs)]
-      (do
-        (debug "compile-apply:" result ast)
+      (append-lines
+        (debug-line "compile-apply:" result ast)
+        (append-lines-seq
+          (map (fn* [re] (compile (first re) (nth re 1) env-type)) argregs-with-exprs))
         (cond
           (= functype 'llvm-func)
-            (emit result "= call %mal_obj" (first funcdetails) "(" (string/join ", " argregs-with-types) ")")
+            (line result "= call %mal_obj" (first funcdetails) "(" (string/join ", " argregs-with-types) ")")
           'else
-            (throw (str "Unknown function '" funcname "' type: " functype)))
-        result))))
+            (throw (str "Unknown function '" funcname "' type: " functype)))))))
 
-(def! emit-native-func
+(def! compile-native-func
   (fn* [name llvm-name params body]
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
         (add-native-func name llvm-name)
         (if body
-          (do
-            (emit "")
-            (emit "")
-            (emit "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
+          (append-lines
+            (line "")
+            (line "")
+            (line "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
             (compile "%funcresult" body 'native-func)
-            (emit "ret %mal_obj %funcresult")
-            (emit "}")
-            (emit "")))
-        nil))))
+            (line "ret %mal_obj %funcresult")
+            (line "} ; end of native func " llvm-name)
+            (line ""))
+          (line ""))))))
 
 (def! compile-if
   (fn* [result ast env-type]
@@ -139,23 +161,22 @@
            true-label (new-label)
            false-label (new-label)
            after-if-label (new-label)]
-      (do
-        (emit result-stack-reg "= alloca %mal_obj")
+      (append-lines
+        (line-assign result-stack-reg "alloca %mal_obj")
         (compile cond-reg cond-exp env-type)
-        (emit "switch %mal_obj" cond-reg ", label" (str "%" true-label)
+        (line "switch %mal_obj" cond-reg ", label" (str "%" true-label)
               "[ %mal_obj 2, label" (str "%" false-label) "\n"
               "%mal_obj 4, label" (str "%" false-label) "]")
-        (emit-label true-label)
+        (line-label true-label)
         (compile tmp-true-result true-exp env-type)
-        (emit "store %mal_obj" tmp-true-result ", %mal_obj*" result-stack-reg)
-        (emit "br label" (str "%" after-if-label))
-        (emit-label false-label)
+        (line "store %mal_obj" tmp-true-result ", %mal_obj*" result-stack-reg)
+        (line "br label" (str "%" after-if-label))
+        (line-label false-label)
         (compile tmp-false-result false-exp env-type)
-        (emit "store %mal_obj" tmp-false-result ", %mal_obj*" result-stack-reg)
-        (emit "br label" (str "%" after-if-label))
-        (emit-label after-if-label)
-        (emit result "= load %mal_obj*" result-stack-reg)
-        result))))
+        (line "store %mal_obj" tmp-false-result ", %mal_obj*" result-stack-reg)
+        (line "br label" (str "%" after-if-label))
+        (line-label after-if-label)
+        (line-assign result "load %mal_obj*" result-stack-reg)))))
 
 (def! compile-list
   (fn* [result ast env-type]
@@ -164,79 +185,125 @@
         (= 'defmacro! a0)
           (do
             (eval ast)
-            result)
+            (line ""))
 
         (= 'def! a0)
-          (let* [var-reg (compile-literal (new-reg) (nth ast 1) env-type)
-                 val-reg (compile (new-reg) (nth ast 2) env-type)]
-            (emit-assign result "call %mal_obj @env_set(%mal_obj %env, %mal_obj " var-reg ", %mal_obj " val-reg ")"))
+          (let* [var-reg (new-reg)
+                 val-reg (new-reg)]
+            (append-lines
+              (compile-literal var-reg (nth ast 1) env-type)
+              (compile val-reg (nth ast 2) env-type)
+              (line-assign result "call %mal_obj @env_set(%mal_obj %env, %mal_obj " var-reg ", %mal_obj " val-reg ")")))
 
         (= 'quote a0)
           (compile-literal result (nth ast 1) env-type)
 
         (= 'do a0)
-          (let* [regs (map (fn* [a] (compile-temp a env-type)) (rest ast))]
-            (if result
-              (emit-assign-to-reg result (last regs))))
+          (let* [exprs (rest ast)
+                 regs-and-lines (map (fn* [e] (compile-temp e env-type)) exprs)
+                 lines (map (fn* [p] (nth p 1)) regs-and-lines)]
+            (append-lines
+              (append-lines-seq lines)
+              (if result
+                (line-assign-to-reg result (first (last regs-and-lines)))
+                (line ""))))
 
         (= 'if a0)
           (compile-if result ast env-type)
 
+        (= 'fn* a0)
+          (compile-fn result ast env-type)
+
         (= 'defnativefn a0)
-          (do
-            (apply emit-native-func (rest ast))
-            result)
+          (apply compile-native-func (rest ast))
 
         'else
           (compile-apply result ast env-type)))))
 
 (def! compile-temp
   (fn* [ast env-type]
-    (compile (new-reg) ast env-type)))
+    (let* [r (new-reg)]
+      [r (compile r ast env-type)])))
 
 (def! compile-variable
   (fn* [result var-name env-type]
     (cond
       (= env-type 'native-func)
-        (emit-assign-to-reg result (str "%" var-name))
+        (line-assign-to-reg result (str "%" var-name))
 
       (= env-type 'mal-env)
-        (let* [var-name-reg (compile-literal (new-reg) var-name env-type)]
-          (emit-assign result "call %mal_obj @env_get(%mal_obj %env, %mal_obj" var-name-reg ")")))))
+        (let* [var-name-reg (new-reg)]
+          (append-lines
+            (compile-literal var-name-reg var-name env-type)
+            (line-assign result "call %mal_obj @env_get(%mal_obj %env, %mal_obj" var-name-reg ")"))))))
+
+(def! set-elementarray-item
+  (fn* [result index item-reg]
+    (let* [index-reg (new-reg)]
+      (append-lines
+        (compile-const-integer index-reg index)
+        (line "call %mal_obj @mal_set_elementarray_item("
+              "%mal_obj" result
+              ", %mal_obj" index-reg
+              ", %mal_obj" item-reg ")")))))
 
 (def! compile-elementarray
   (fn* [result type-num itemsregs env-type]
     (let* [type-reg (new-reg)
            len-reg (new-reg)]
-      (do
+      (append-lines
         (compile type-reg type-num env-type)
         (compile len-reg (count itemsregs) env-type)
-        (emit result "= call %mal_obj @mal_make_elementarray_obj(%mal_obj " type-reg ", %mal_obj " len-reg ")")
-        (map-with-index (fn* [r index]
-                              (let* [index-reg (new-reg)]
-                                (do
-                                  (compile-const-integer index-reg index)
-                                  (emit "call %mal_obj @mal_set_elementarray_item("
-                                        "%mal_obj" result
-                                        ", %mal_obj" index-reg
-                                        ", %mal_obj" r ")"))))
-                        itemsregs)
-        result))))
+        (line result "= call %mal_obj @mal_make_elementarray_obj(%mal_obj " type-reg ", %mal_obj " len-reg ")")
+        (append-lines-seq
+          (vector-map-with-index (fn* [r index] (set-elementarray-item result index r)) itemsregs))))))
+
+(def! compile-literal-elementarray
+  (fn* [type-num result ast env-type]
+    (let* [regs (map new-reg ast)
+           regs-and-exprs (zip regs ast)
+           lines (map (fn* [re] (compile-literal (first re) (nth re 1) env-type)) regs-and-exprs)]
+      (append-lines
+        (append-lines-seq lines)
+        (compile-elementarray result type-num regs env-type)))))
 
 (def! compile-literal-list
   (fn* [result ast env-type]
-    (let* [itemsregs (map (fn* [p] (compile-literal (new-reg) p env-type)) ast)]
-      (compile-elementarray result 33 itemsregs env-type))))
+    (compile-literal-elementarray 33 result ast env-type)))
+
+(def! compile-literal-vector
+  (fn* [result ast env-type]
+    (compile-literal-elementarray 34 result ast env-type)))
 
 (def! compile-vector
   (fn* [result ast env-type]
-    (let* [itemsregs (map (fn* [p] (compile (new-reg) p env-type)) ast)]
-      (compile-elementarray result 34 itemsregs env-type))))
+    (let* [regs (map new-reg ast)
+           regs-and-exprs (zip regs ast)
+           lines (map (fn* [re] (compile (first re) (nth re 1) env-type)) regs-and-exprs)]
+      (append-lines
+        (append-lines-seq lines)
+        (compile-elementarray result 34 regs env-type)))))
+
+(def! compile-fn
+  (fn* [result ast env-type]
+    (let* [func-name (new-func-name)
+           args-names (nth ast 1)
+           body (nth ast 2)
+           func-ptr-reg (new-reg)]
+      (do
+        (add-function-definition (define-mal-func func-name body))
+        (append-lines
+          (compile-literal-list result [args-names nil nil] 'mal-env)
+          (line "call %mal_obj @mal_set_elementarray_item("
+                "%mal_obj" result ", %mal_obj 1, %mal_obj %env)")
+          (line-assign func-ptr-reg "ptrtoint %mal_obj(%mal_obj)*" func-name "to %mal_obj")
+          (line "call %mal_obj @mal_set_elementarray_item("
+                "%mal_obj" result ", %mal_obj 2, %mal_obj" func-ptr-reg ")"))))))
 
 (def! compile-literal
   (fn* [result ast env-type]
-    (do
-      (debug "compile-literal:" result ast)
+    (append-lines
+      (debug-line "compile-literal:" result ast)
       (cond
         (nil? ast) (compile-nil result)
         (true? ast) (compile-true result)
@@ -245,7 +312,8 @@
         (symbol? ast) (compile-const-bytearray result 17 ast)
         (string? ast) (compile-const-bytearray result 18 ast)
         (keyword? ast) (compile-const-bytearray result 19 ast)
-        (list? ast) (compile-literal-list result ast env-type)))))
+        (list? ast) (compile-literal-list result ast env-type)
+        (vector? ast) (compile-literal-vector result ast env-type)))))
 
 (def! literal?
   (fn* [ast]
@@ -265,40 +333,42 @@
 
 (def! compile
   (fn* [result ast env-type]
-    (let* [exp-ast (expand-macros ast)
-           x1 (debug "compile:" ast)
-           x2 (debug "exp-ast:" exp-ast)]
-      (cond
-        (symbol? exp-ast) (compile-variable result exp-ast env-type)
-        (literal? exp-ast) (compile-literal result exp-ast env-type)
-        (list? exp-ast) (compile-list result exp-ast env-type)
-        (vector? exp-ast) (compile-vector result exp-ast env-type)))))
+    (let* [exp-ast (expand-macros ast)]
+      (append-lines
+        (debug-line "compile:" ast)
+        (debug-line "exp-ast:" exp-ast)
+        (cond
+          (symbol? exp-ast) (compile-variable result exp-ast env-type)
+          (literal? exp-ast) (compile-literal result exp-ast env-type)
+          (list? exp-ast) (compile-list result exp-ast env-type)
+          (vector? exp-ast) (compile-vector result exp-ast env-type))))))
 
-(def! escape
-  (fn* [s]
-    (str "@\"" s "\"")))
-
-(def! emit-function
+(def! define-mal-func
   (fn* [name body]
-    (do
-      (emit "")
-      (emit "")
-      (emit "define private %mal_obj" (escape name) "(%mal_obj %env) {")
+    (append-lines
+      (line "")
+      (line "")
+      (line "define private %mal_obj" name "(%mal_obj %env) {")
       (compile "%funcresult" body 'mal-env)
-      (emit "ret %mal_obj %funcresult")
-      (emit "} ; end of function" name))))
-      (emit "")
+      (line "ret %mal_obj %funcresult")
+      (line "} ; end of function" name)
+      (line ""))))
 
 (def! emit-strings-list
   (fn* []
     (map emit @*strings-list*)))
 
+(def! emit-functions-definitions
+  (fn* []
+    (map emit @*functions-definitions-list*)))
+
 (def! compile-program-string
   (fn* [s]
     (do
       (emit (slurp "header.ll"))
-      (compile nil (read-string (str "(do " (slurp "nativefuncs.mal") ")")) 'native-func)
-      (emit-function "mal_prog_main" (read-string (str "(do " s ")")))
+      (emit (compile nil (read-string (str "(do " (slurp "nativefuncs.mal") ")")) 'native-func))
+      (emit (define-mal-func "@mal_prog_main" (read-string (str "(do " s ")"))))
+      (emit-functions-definitions)
       (emit-strings-list)
       (emit (slurp "footer.ll")))))
 
@@ -306,7 +376,6 @@
   (fn* [filename]
     (compile-program-string (slurp filename))))
 
-(debug "Starting...")
 (if (empty? *ARGV*)
   (println "Usage: malc source_filename")
   (compile-program-file (first *ARGV*)))
