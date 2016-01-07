@@ -67,6 +67,7 @@
 (defnativefn vector?  vector_Q  [obj] (_integer_equal? 34 (_get_type obj)))
 (defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
+(defnativefn function? function_Q [obj] (_integer_equal? 66 (_get_type obj)))
 
 (defnativefn equal_bytearray_content? equal_bytearray_content_Q [a b]
   (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b)))
@@ -190,6 +191,12 @@
     (_set_elementarray_item env 1 (assoc1 (env-data env) k v))
     v))
 
+;;
+;; Function
+;;
+(defnativefn fn-args-names fn_args_names [fn]
+  (_get_elementarray_item fn 0))
+
 ;; forward declaration
 (defnativefn printobj printobj [obj readable])
 
@@ -200,6 +207,12 @@
       (if (mal_not (= index 0)) (printobj " " readable))
       (printobj (nth obj index) readable)
       (printelements obj readable (+ 1 index)))))
+
+(defnativefn printsequence printsequence [obj readable startchar endchar]
+  (do
+    (_printbytearray startchar)
+    (printelements obj readable 0)
+    (_printbytearray endchar)))
 
 (defnativefn printobj printobj [obj readable]
   (cond
@@ -216,20 +229,24 @@
           (_printbytearray obj)
           (_printchar 34)) ; quote
         (_printbytearray obj))
-    (map? obj)
-      (do
-        (_printbytearray "{") ; "\"")
-        (printelements obj readable 0)
-        (_printbytearray "}")) ; "\""))
+    (list? obj)   (printsequence obj readable "(" ")")
+    (vector? obj) (printsequence obj readable "[" "]")
+    (map? obj)    (printsequence obj readable "{" "}")
     (atom? obj)
       (do
         (_printbytearray "(atom ")
         (printobj (deref obj) readable)
-        (_printbytearray ")")) ; "\""))
+        (_printbytearray ")"))
+    (function? obj)
+      (do
+        (_printbytearray "#<function args=")
+        (printobj (fn-args-names obj) readable)
+        (_printbytearray ">"))
     :else
       (do
-        (_printbytearray "DONT-KNOW-HOW-TO-PRINT:raw=")
-        (_printraw obj))))
+        (_printbytearray "#<DONT-KNOW-HOW-TO-PRINT:raw=")
+        (_printraw obj)
+        (_printbytearray ">"))))
 
 (defnativefn _printnewline _printnewline []
   (_printchar 10))

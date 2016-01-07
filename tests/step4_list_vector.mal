@@ -1,0 +1,11 @@
+(printlnobj '() false)
+;; EXPECTED: ()
+
+(printlnobj '(11 22 33) false)
+;; EXPECTED: (11 22 33)
+
+(printlnobj [] false)
+;; EXPECTED: []
+
+(printlnobj [11 22 33] false)
+;; EXPECTED: [11 22 33]

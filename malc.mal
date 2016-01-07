@@ -98,12 +98,9 @@
 
 (def! compile-const-bytearray
   (fn* [result type-num body]
-    (let* [len-reg (new-reg)
-           str-len (inc (string/length body))
+    (let* [str-len (inc (string/length body))
            str-global (add-string body)]
-      (append-lines
-        (line len-reg "= add i32 0," str-len)
-        (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " len-reg ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))")))))
+      (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " str-len ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))"))))
 
 (def! get-func
   (fn* [funcname]
@@ -285,19 +282,25 @@
            args-names (nth ast 1)
            args-names-reg (new-reg)
            body (nth ast 2)
-           func-ptr-reg (new-reg)]
+           func-ptr-reg (new-reg)
+           n0 (new-reg)
+           n1 (new-reg)
+           n2 (new-reg)]
       (do
         (add-function-definition (define-mal-func func-name body))
         (append-lines
           (compile-literal-list args-names-reg args-names env-type)
           (line-assign result "call %mal_obj @make_func()")
+          (compile-const-integer n0 0)
+          (compile-const-integer n1 1)
+          (compile-const-integer n2 2)
           (line "call %mal_obj @mal_set_elementarray_item("
-                "%mal_obj" result ", %mal_obj 0, %mal_obj" args-names-reg ")")
+                "%mal_obj" result ", %mal_obj" n0 ", %mal_obj" args-names-reg ")")
           (line "call %mal_obj @mal_set_elementarray_item("
-                "%mal_obj" result ", %mal_obj 1, %mal_obj %env)")
+                "%mal_obj" result ", %mal_obj" n1 ", %mal_obj %env)")
           (line-assign func-ptr-reg "ptrtoint %mal_obj(%mal_obj)*" func-name "to %mal_obj")
           (line "call %mal_obj @mal_set_elementarray_item("
-                "%mal_obj" result ", %mal_obj 2, %mal_obj" func-ptr-reg ")"))))))
+                "%mal_obj" result ", %mal_obj" n2 ", %mal_obj" func-ptr-reg ")"))))))
 
 (def! compile-literal
   (fn* [result ast env-type]
