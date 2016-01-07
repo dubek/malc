@@ -50,13 +50,11 @@
 
 (def! append-lines
   (fn* [& args]
-    (apply vector args)))
-    ;(string/join "\n" (concat args [""]))))
+    args))
 
 (def! append-lines-seq
   (fn* [seq]
-    (apply vector seq)))
-    ;(string/join "\n" (concat seq [""]))))
+    seq))
 
 (def! line
   (fn* [& args]
@@ -64,14 +62,11 @@
 
 (def! emit
   (fn* [& args]
-    (if (empty? args)
-      nil
-      (let* [f (first args)]
-        (if (sequential? f)
-          (map emit f)
-          (do
-            (println f)
-            (emit (rest args))))))))
+    (let* [emit1 (fn* [arg]
+                      (if (sequential? arg)
+                        (map emit1 arg)
+                        (println arg)))]
+    (map emit1 args))))
 
 (def! line-label
   (fn* [name]
@@ -288,12 +283,16 @@
   (fn* [result ast env-type]
     (let* [func-name (new-func-name)
            args-names (nth ast 1)
+           args-names-reg (new-reg)
            body (nth ast 2)
            func-ptr-reg (new-reg)]
       (do
         (add-function-definition (define-mal-func func-name body))
         (append-lines
-          (compile-literal-list result [args-names nil nil] 'mal-env)
+          (compile-literal-list args-names-reg args-names env-type)
+          (line-assign result "call %mal_obj @make_func()")
+          (line "call %mal_obj @mal_set_elementarray_item("
+                "%mal_obj" result ", %mal_obj 0, %mal_obj" args-names-reg ")")
           (line "call %mal_obj @mal_set_elementarray_item("
                 "%mal_obj" result ", %mal_obj 1, %mal_obj %env)")
           (line-assign func-ptr-reg "ptrtoint %mal_obj(%mal_obj)*" func-name "to %mal_obj")

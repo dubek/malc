@@ -50,16 +50,12 @@ flags:
 
 49 - 0x31 - atom - implemented as a vector of size 1.
 
-### Env
-
-Env is implemented as a vector with two elements:
+65 - 0x41 - Env - implemented as a vector with two elements:
 
 * Index 0: `outer` - an outer environment, or `nil` if this is the root environment
 * Index 1: `data` - a hash-map from variables names to their values
 
-### Func
-
-Func is implemented as a vector with 3 elements:
+66 - 0x42 - Func - implemented as a vector with three elements:
 
 * Index 0: `arg_names` - Vector of symbols (argument names)
 * Index 1: `env` - Env

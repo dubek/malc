@@ -54,6 +54,8 @@
 (defnativefn make-vector make_vector [len] (_make_elementarray_obj 34 len))
 (defnativefn make-map make_map [len] (_make_elementarray_obj 35 len))
 (defnativefn make-atom make_atom [] (_make_elementarray_obj 49 1))
+(defnativefn make-env make_env [] (_make_elementarray_obj 65 2))
+(defnativefn make-func make_func [] (_make_elementarray_obj 66 3))
 
 (defnativefn cons cons [x y]
   (_set_elementarray_item (_set_elementarray_item (make-list 2) 0 x) 1 y))
@@ -156,8 +158,11 @@
     res
     (env-bind-vars (assoc1 res (nth binds index) (nth exprs index)) binds exprs (+ 1 index))))
 
+(defnativefn init-env init_env [outer data]
+  (_set_elementarray_item (_set_elementarray_item (make-env) 0 outer) 1 data))
+
 (defnativefn new-env new_env [outer binds exprs]
-  (cons outer (env-bind-vars (make-map 0) binds exprs 0)))
+  (init-env outer (env-bind-vars (make-map 0) binds exprs 0)))
 
 (defnativefn new-root-env new_root_env []
   (new-env nil [] []))
