@@ -202,6 +202,20 @@
         (line-label after-if-label)
         (line-assign result "load %mal_obj*" result-stack-reg)))))
 
+; AST manipulation: rewrite let* as nested fn*
+; Converts (let* [x 8 y (+ x 2)] (body ...))
+; to ((fn* [x] ((fn* [y] (body ...)) (+ x 2))) 8)
+(def! convert-let*-to-fn*
+  (fn* [ast]
+    (let* [helper (fn* [vars body]
+                    (let* [var1-name (nth vars 0)
+                           var1-value (nth vars 1)
+                           rest-vars (rest (rest vars))]
+                      (if (empty? rest-vars)
+                        (list (list 'fn* [var1-name] body) var1-value)
+                        (list (list 'fn* [var1-name] (helper rest-vars body)) var1-value))))]
+      (helper (nth ast 1) (nth ast 2)))))
+
 (def! compile-list
   (fn* [result ast env-type]
     (let* [a0 (first ast)]
@@ -218,6 +232,9 @@
               (compile-literal var-reg (nth ast 1) env-type)
               (compile val-reg (nth ast 2) env-type)
               (line-assign result "call %mal_obj @env_set(%mal_obj %env, %mal_obj " var-reg ", %mal_obj " val-reg ")")))
+
+        (= 'let* a0)
+          (compile result (convert-let*-to-fn* ast) env-type)
 
         (= 'quote a0)
           (compile-literal result (nth ast 1) env-type)
