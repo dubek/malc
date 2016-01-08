@@ -26,3 +26,25 @@
 
 (printlnobj ((fn* [a] (+ a 55)) 22) false)
 ;; EXPECTED: 77
+
+(printlnobj ( (fn* (a b) (+ b a)) 3 4) false)
+;; EXPECTED: 7
+(printlnobj ( (fn* () 4) ) false)
+;; EXPECTED: 4
+
+(printlnobj ( (fn* (f x) (f x)) (fn* (a) (+ 1 a)) 7) false)
+;; EXPECTED: 8
+
+;; Testing closures
+(printlnobj ( ( (fn* (a) (fn* (b) (+ a b))) 5) 7) false)
+;; EXPECTED: 12
+
+(def! gen-plus5 (fn* () (fn* (b) (+ 5 b))))
+(def! plus5 (gen-plus5))
+(printlnobj (plus5 7) false)
+;; EXPECTED: 12
+
+(def! gen-plusX (fn* (x) (fn* (b) (+ x b))))
+(def! plus7 (gen-plusX 7))
+(printlnobj (plus7 8) false)
+;; EXPECTED: 15
