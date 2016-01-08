@@ -109,7 +109,7 @@
   (_concat_elementarrays 35 lst []))
 
 (defnativefn get-helper get_helper [hm key index]
-  (if (= (_get_len hm) index)
+  (if (>= index (_get_len hm))
     nil
     (if (= (nth hm index) key)
       (nth hm (+ 1 index))
@@ -119,7 +119,7 @@
   (get-helper hm key 0))
 
 (defnativefn contains-helper contains_helper [hm key index]
-  (if (= (_get_len hm) index)
+  (if (>= index (_get_len hm))
     false
     (if (= (nth hm index) key)
       true
@@ -129,7 +129,7 @@
   (contains-helper hm key 0))
 
 (defnativefn dissoc1-helper dissoc1_helper [hm key index result]
-  (if (= (_get_len hm) index)
+  (if (>= index (_get_len hm))
     result
     (if (= (nth hm index) key)
       (dissoc1-helper hm key (+ 2 index) result)
@@ -161,7 +161,7 @@
 ;; Env
 ;;
 (defnativefn env-bind-vars env_bind_vars [res binds exprs index]
-  (if (= (count binds) index)
+  (if (>= index (count binds))
     res
     (env-bind-vars (assoc1 res (nth binds index) (nth exprs index)) binds exprs (+ 1 index))))
 
@@ -213,10 +213,10 @@
 (defnativefn printobj printobj [obj readable])
 
 (defnativefn printelements printelements [obj readable index]
-  (if (= (_get_len obj) index)
+  (if (>= index (_get_len obj))
     nil
     (do
-      (if (mal_not (= index 0)) (printobj " " false))
+      (if (> index 0) (printobj " " false))
       (printobj (nth obj index) readable)
       (printelements obj readable (+ 1 index)))))
 
