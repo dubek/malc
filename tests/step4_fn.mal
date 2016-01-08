@@ -48,3 +48,18 @@
 (def! plus7 (gen-plusX 7))
 (printlnobj (plus7 8) false)
 ;; EXPECTED: 15
+
+;; Testing variable length arguments
+
+(printlnobj ( (fn* (& more) (count more)) 1 2 3) false)
+;; EXPECTED: 3
+(printlnobj ( (fn* (& more) (count more)) 1) false)
+;; EXPECTED: 1
+(printlnobj ( (fn* (& more) (count more)) ) false)
+;; EXPECTED: 0
+(printlnobj ( (fn* (a & more) (count more)) 1 2 3) false)
+;; EXPECTED: 2
+(printlnobj ( (fn* (a & more) (count more)) 1) false)
+;; EXPECTED: 0
+(printlnobj ( (fn* (a & more) [a more]) 1 2 3) false)
+;; EXPECTED: [1 (2 3)]

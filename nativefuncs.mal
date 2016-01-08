@@ -40,6 +40,14 @@
 (defnativefn printlnobj printlnobj [obj readable])
 
 ;;
+;; Runtime error
+;;
+(defnativefn runtime-error runtime_error [msg]
+  (do
+    (printlnobj msg false)
+    (os-exit 1)))
+
+;;
 ;; Simple boolean operations for native functions
 ;;
 (defnativefn mal_and mal_and [x y] (if x y false))
@@ -91,14 +99,18 @@
     nil
     (_get_elementarray_item seq 0)))
 
-(defnativefn rest rest [seq]
-  (if (> (count seq) 1)
-    (_slice_elementarray 33 seq 1 (- (_get_len seq) 1))
+(defnativefn drop drop [seq nitems]
+  (if (> (count seq) nitems)
+    (_slice_elementarray 33 seq nitems (- (count seq) nitems))
     (make-list 0)))
 
+(defnativefn rest rest [seq]
+  (drop seq 1))
+
 (defnativefn nth nth [seq index]
-  ; TODO check boundaries
-  (_get_elementarray_item seq index))
+  (if (>= index (count seq))
+    (runtime-error "nth: index out of range")
+    (_get_elementarray_item seq index)))
 
 (defnativefn hash-map-from-list hash_map_from_list [lst]
   (_concat_elementarrays 35 lst []))
@@ -153,20 +165,14 @@
     val))
 
 ;;
-;; Runtime error
-;;
-(defnativefn runtime-error runtime_error [msg]
-  (do
-    (printlnobj msg false)
-    (os-exit 1)))
-
-;;
 ;; Env
 ;;
 (defnativefn env-bind-vars env_bind_vars [res binds exprs index]
   (if (>= index (count binds))
     res
-    (env-bind-vars (assoc1 res (nth binds index) (nth exprs index)) binds exprs (+ 1 index))))
+    (if (= '& (nth binds index))
+      (assoc1 res (nth binds (+ 1 index)) (drop exprs index))
+      (env-bind-vars (assoc1 res (nth binds index) (nth exprs index)) binds exprs (+ 1 index)))))
 
 (defnativefn init-env init_env [outer data]
   (_set_elementarray_item (_set_elementarray_item (make-env) 0 outer) 1 data))
