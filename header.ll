@@ -254,9 +254,26 @@ define private %mal_obj @mal_concat_elementarrays(%mal_obj %objtype, %mal_obj %a
   %new_obj = call %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %new_len)
   %new_arrayptr = call i8* @mal_get_array_ptr_i8(%mal_obj %new_obj)
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %new_arrayptr, i8* %a_arrayptr, i32 %a_len_bytes, i32 0, i1 0)
-  ; call void @llvm.memcpy(i8* %new_arrayptr, i8* %a_arrayptr, i32 %a_len_bytes, i32 0, i1 0)
   %next_arrayptr = getelementptr i8* %new_arrayptr, i32 %a_len_bytes
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %next_arrayptr, i8* %b_arrayptr, i32 %b_len_bytes, i32 0, i1 0)
+  ret %mal_obj %new_obj
+}
+
+define private %mal_obj @mal_slice_elementarray(%mal_obj %newobjtype, %mal_obj %obj, %mal_obj %from, %mal_obj %len) {
+  %from_index = call i64 @mal_integer_to_raw(%mal_obj %from)
+
+  %obj_arrayptr = call i8* @mal_get_array_ptr_i8(%mal_obj %obj)
+  %obj_arrayptr_malobjs = bitcast i8* %obj_arrayptr to %mal_obj*
+  %obj_arrayptr_malobjs_start = getelementptr %mal_obj* %obj_arrayptr_malobjs, i64 %from_index
+  %obj_arrayptr_start = bitcast %mal_obj* %obj_arrayptr_malobjs_start to i8*
+
+  %len_elements_i64 = call i64 @mal_integer_to_raw(%mal_obj %len)
+  %len_elements_i32 = trunc i64 %len_elements_i64 to i32
+  %len_bytes = mul nsw i32 %len_elements_i32, 8
+
+  %new_obj = call %mal_obj @mal_make_elementarray_obj(%mal_obj %newobjtype, %mal_obj %len)
+  %new_arrayptr = call i8* @mal_get_array_ptr_i8(%mal_obj %new_obj)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %new_arrayptr, i8* %obj_arrayptr_start, i32 %len_bytes, i32 0, i1 0)
   ret %mal_obj %new_obj
 }
 

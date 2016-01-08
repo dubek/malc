@@ -22,6 +22,7 @@
 (defnativefn _set_elementarray_item mal_set_elementarray_item [obj item_index new_item])
 (defnativefn _get_elementarray_item mal_get_elementarray_item [obj item_index])
 (defnativefn _concat_elementarrays  mal_concat_elementarrays [objtype a b])
+(defnativefn _slice_elementarray    mal_slice_elementarray [newobjtype obj from len])
 (defnativefn _bytearray_equal?      mal_bytearray_equal_q [a b])
 
 (defnativefn _printchar      mal_printchar [obj])
@@ -90,18 +91,10 @@
     nil
     (_get_elementarray_item seq 0)))
 
-; TODO: performance, replace this with memcpy
-(defnativefn copy-rest-list copy_rest_list [dst src index_dst index_src dst_len]
-  (if (>= index_dst dst_len)
-    dst
-    (do
-      (_set_elementarray_item dst index_dst (_get_elementarray_item src index_src))
-      (copy-rest-list dst src (+ 1 index_dst) (+ 1 index_src) dst_len))))
-
 (defnativefn rest rest [seq]
-  (if (empty? seq)
-    (make-list 0)
-    (copy-rest-list (make-list (- (_get_len seq) 1)) seq 0 1 (- (_get_len seq) 1))))
+  (if (> (count seq) 1)
+    (_slice_elementarray 33 seq 1 (- (_get_len seq) 1))
+    (make-list 0)))
 
 (defnativefn nth nth [seq index]
   ; TODO check boundaries
