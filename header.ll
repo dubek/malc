@@ -1,11 +1,15 @@
 ; Start of malc header.ll
 
+%struct.timeval = type { i64, i64 }
+%struct.timezone = type { i32, i32 }
+
 declare i32 @putchar(i32)
 declare i32 @printf(i8*, ...)
 declare i32 @exit(i32)
 declare i32 @memcmp(i8*, i8*, i32);
 declare i8* @calloc(i32, i32)
 declare void @free(i8*)
+declare i32 @gettimeofday(%struct.timeval*, %struct.timezone*)
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 
 %mal_obj = type i64
@@ -254,6 +258,20 @@ define private %mal_obj @mal_div(%mal_obj %a, %mal_obj %b) {
   %3 = sdiv i64 %1, %2
   %4 = call %mal_obj @make_integer(i64 %3)
   ret %mal_obj %4
+}
+
+define private %mal_obj @mal_time_ms() {
+  %tv = alloca %struct.timeval, align 8
+  %1 = call i32 @gettimeofday(%struct.timeval* %tv, %struct.timezone* null)
+  %2 = getelementptr inbounds %struct.timeval* %tv, i32 0, i32 0
+  %3 = load i64* %2, align 8
+  %4 = mul nsw i64 %3, 1000
+  %5 = getelementptr inbounds %struct.timeval* %tv, i32 0, i32 1
+  %6 = load i64* %5, align 8
+  %7 = sdiv i64 %6, 1000
+  %8 = add nsw i64 %4, %7
+  %9 = call %mal_obj @make_integer(i64 %8)
+  ret %mal_obj %9
 }
 
 @printf_format_d = private unnamed_addr constant [5 x i8] c"%lld\00"

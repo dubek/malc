@@ -43,6 +43,8 @@
 (defnativefn _printraw       mal_printraw [obj])
 (defnativefn _printbytearray mal_printbytearray [obj])
 
+(defnativefn time-ms mal_time_ms [])
+
 ;;
 ;; Simple boolean operations for native functions
 ;;
