@@ -1,0 +1,15 @@
+;
+; Verify that trivial work takes less than 100 millisecs
+;
+(printlnobj "Start" false)
+(let* [start (time-ms)]
+  (do
+    (printlnobj "Working" false)
+    (printlnobj (* 1000 1000) false)
+    (printlnobj "Done" false)
+    (printlnobj (< (- (time-ms) start) 100) false)))
+;; EXPECTED: Start
+;; EXPECTED: Working
+;; EXPECTED: 1000000
+;; EXPECTED: Done
+;; EXPECTED: true
