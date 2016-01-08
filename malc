@@ -1,7 +1,8 @@
 #!/bin/sh
 
-#MAL=./mal
-MAL="ruby ../mal/ruby/stepA_mal.rb"
+if [ -z "$MAL" ] ; then
+  MAL="ruby ../mal/ruby/stepA_mal.rb"
+fi
 
 set -e
 if [ -n "$2" ] ; then

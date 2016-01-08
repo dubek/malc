@@ -306,6 +306,13 @@ define private %mal_obj @mal_time_ms() {
   ret %mal_obj %9
 }
 
+define private %mal_obj @mal_os_exit(%mal_obj %exitcode) {
+  %1 = call i64 @mal_integer_to_raw(%mal_obj %exitcode)
+  %2 = trunc i64 %1 to i32
+  call i32 @exit(i32 %2)
+  ret %mal_obj 0
+}
+
 @printf_format_lld = private unnamed_addr constant [5 x i8] c"%lld\00"
 
 define private %mal_obj @mal_printnumber(%mal_obj %obj) {

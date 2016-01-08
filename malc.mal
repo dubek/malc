@@ -216,14 +216,25 @@
                         (list (list 'fn* [var1-name] (helper rest-vars body)) var1-value))))]
       (helper (nth ast 1) (nth ast 2)))))
 
+(def! compile-load-file
+  (fn* [result filename env-type]
+    (append-lines
+      (debug-line "load-file:" filename)
+      (compile result (read-string (str "(do " (slurp filename) ")")) env-type))))
+
 (def! compile-list
   (fn* [result ast env-type]
     (let* [a0 (first ast)]
       (cond
+        (= 'load-file a0)
+          (compile-load-file result (nth ast 1) env-type)
+
         (= 'defmacro! a0)
           (do
             (eval ast)
-            (line ""))
+            (if result
+              (compile-nil result)
+              (line "")))
 
         (= 'def! a0)
           (let* [var-reg (new-reg)

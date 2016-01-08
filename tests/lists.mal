@@ -1,0 +1,31 @@
+(def! a '(11 22 33 44 55))
+(printlnobj (count a) false)
+;; EXPECTED: 5
+
+(printlnobj (first a) false)
+;; EXPECTED: 11
+
+(printlnobj (rest a) false)
+;; EXPECTED: (22 33 44 55)
+
+(printlnobj (rest '()) false)
+;; EXPECTED: ()
+
+(printlnobj (rest '(11)) false)
+;; EXPECTED: ()
+
+(def! b [11 22 33 44 55])
+(printlnobj (count b) false)
+;; EXPECTED: 5
+
+(printlnobj (first b) false)
+;; EXPECTED: 11
+
+(printlnobj (rest b) false)
+;; EXPECTED: (22 33 44 55)
+
+(printlnobj (rest []) false)
+;; EXPECTED: ()
+
+(printlnobj (rest [11]) false)
+;; EXPECTED: ()
