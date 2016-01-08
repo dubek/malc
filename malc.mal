@@ -102,28 +102,60 @@
            str-global (add-string body)]
       (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " str-len ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))"))))
 
-(def! get-func
+(def! native-func?
+  (fn* [funcname]
+    (contains? @*native-funcs* funcname)))
+
+(def! get-native-func
   (fn* [funcname]
     (get @*native-funcs* funcname)))
 
-(def! compile-apply
+(def! compile-apply-native-func
   (fn* [result ast env-type]
     (let* [funcname (first ast)
-           funcobj (get-func funcname)
-           functype (first funcobj)
-           funcdetails (rest funcobj)
+           funcobj (get-native-func funcname)
+           llvm-func-name (nth funcobj 1)
            argregs (map new-reg (rest ast))
            argregs-with-exprs (zip argregs (rest ast))
            argregs-with-types (map (fn* [a] (str "%mal_obj " a)) argregs)]
       (append-lines
-        (debug-line "compile-apply:" result ast)
+        (debug-line "compile-apply-native-func:" result ast)
         (append-lines-seq
           (map (fn* [re] (compile (first re) (nth re 1) env-type)) argregs-with-exprs))
+          (line result "= call %mal_obj" llvm-func-name "(" (string/join ", " argregs-with-types) ")")))))
+
+(def! compile-apply-mal-func
+  (fn* [result ast env-type]
+    (let* [funcobj-reg (new-reg)
+           funcenv-reg (new-reg)
+           binds-reg (new-reg)
+           exprs-reg (new-reg)
+           funcptr-reg (new-reg)
+           casted-funcptr-reg (new-reg)
+           callenv-reg (new-reg)]
+      (append-lines
+        (debug-line "compile-apply-mal-func:" result ast)
+        (compile funcobj-reg (first ast) env-type)
+        (line-assign funcenv-reg "call %mal_obj @fn_env(%mal_obj " funcobj-reg ")")
+        (line-assign binds-reg "call %mal_obj @fn_args_names(%mal_obj " funcobj-reg ")")
+        (compile-vector exprs-reg (rest ast) env-type)
+        (line-assign callenv-reg "call %mal_obj @new_env(%mal_obj" funcenv-reg ", %mal_obj" binds-reg ", %mal_obj" exprs-reg ")")
+        (line-assign funcptr-reg "call %mal_obj @fn_func_ptr(%mal_obj " funcobj-reg ")")
+        (line-assign casted-funcptr-reg "inttoptr %mal_obj" funcptr-reg "to %mal_obj(%mal_obj)*")
+        (line-assign result "call %mal_obj" casted-funcptr-reg "(%mal_obj " callenv-reg ")")))))
+
+(def! compile-apply
+  (fn* [result ast env-type]
+    (let* [funcname (first ast)]
+      (append-lines
+        (debug-line "compile-apply:" result ast)
         (cond
-          (= functype 'llvm-func)
-            (line result "= call %mal_obj" (first funcdetails) "(" (string/join ", " argregs-with-types) ")")
+          (native-func? funcname)
+            (compile-apply-native-func result ast env-type)
+          (= env-type 'mal-env)
+            (compile-apply-mal-func result ast env-type)
           'else
-            (throw (str "Unknown function '" funcname "' type: " functype)))))))
+            (throw (str "Unknown function '" funcname "'")))))))
 
 (def! compile-native-func
   (fn* [name llvm-name params body]

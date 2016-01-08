@@ -1,3 +1,28 @@
-(def! f (fn* [x y] (* y (+ 10 x))))
+(def! p (fn* [] (printlnobj "hello world" false)))
+(p)
+;; EXPECTED: hello world
+
+(def! f (fn* [x y] (* y (+ 1 x))))
 (printlnobj f false)
 ;; EXPECTED: #<function args=(x y)>
+
+(printlnobj (f 3 4) false)
+;; EXPECTED: 16
+
+(printlnobj (f 2 5) false)
+;; EXPECTED: 15
+
+(printlnobj (f (f 3 5) (- 6 2)) false)
+;; EXPECTED: 84
+
+(printlnobj "----" false)
+;; EXPECTED: ----
+
+(def! f2 (fn* [x y] (do (printlnobj ["f2:" x y] true) (* y (+ 1 x)))))
+(printlnobj (f2 (f2 3 5) (- 6 2)) false)
+;; EXPECTED: ["f2:" 3 5]
+;; EXPECTED: ["f2:" 20 4]
+;; EXPECTED: 84
+
+(printlnobj ((fn* [a] (+ a 55)) 22) false)
+;; EXPECTED: 77
