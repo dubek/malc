@@ -1,0 +1,19 @@
+(printlnobj (> 8 8) false)
+;; EXPECTED: false
+(printlnobj (> 9 8) false)
+;; EXPECTED: true
+
+(printlnobj (>= 8 8) false)
+;; EXPECTED: true
+(printlnobj (>= 9 8) false)
+;; EXPECTED: true
+
+(printlnobj (< 8 8) false)
+;; EXPECTED: false
+(printlnobj (< 7 8) false)
+;; EXPECTED: true
+
+(printlnobj (<= 8 8) false)
+;; EXPECTED: true
+(printlnobj (<= 7 8) false)
+;; EXPECTED: true

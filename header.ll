@@ -99,6 +99,38 @@ define private %mal_obj @mal_integer_equal_q(%mal_obj %a, %mal_obj %b) {
   ret %mal_obj %2
 }
 
+define private %mal_obj @mal_integer_gt_q(%mal_obj %a, %mal_obj %b) {
+  %1 = call i64 @mal_integer_to_raw(%mal_obj %a)
+  %2 = call i64 @mal_integer_to_raw(%mal_obj %b)
+  %3 = icmp sgt i64 %1, %2
+  %4 = call %mal_obj @bool_to_mal(i1 %3)
+  ret %mal_obj %4
+}
+
+define private %mal_obj @mal_integer_gte_q(%mal_obj %a, %mal_obj %b) {
+  %1 = call i64 @mal_integer_to_raw(%mal_obj %a)
+  %2 = call i64 @mal_integer_to_raw(%mal_obj %b)
+  %3 = icmp sge i64 %1, %2
+  %4 = call %mal_obj @bool_to_mal(i1 %3)
+  ret %mal_obj %4
+}
+
+define private %mal_obj @mal_integer_lt_q(%mal_obj %a, %mal_obj %b) {
+  %1 = call i64 @mal_integer_to_raw(%mal_obj %a)
+  %2 = call i64 @mal_integer_to_raw(%mal_obj %b)
+  %3 = icmp slt i64 %1, %2
+  %4 = call %mal_obj @bool_to_mal(i1 %3)
+  ret %mal_obj %4
+}
+
+define private %mal_obj @mal_integer_lte_q(%mal_obj %a, %mal_obj %b) {
+  %1 = call i64 @mal_integer_to_raw(%mal_obj %a)
+  %2 = call i64 @mal_integer_to_raw(%mal_obj %b)
+  %3 = icmp sle i64 %1, %2
+  %4 = call %mal_obj @bool_to_mal(i1 %3)
+  ret %mal_obj %4
+}
+
 define private %mal_obj @make_integer(i64 %x) {
   %1 = shl i64 %x, 1
   %2 = or i64 %1, 1

@@ -24,6 +24,10 @@
 (defnativefn * mal_mul [a b])
 (defnativefn / mal_div [a b])
 (defnativefn _integer_equal? mal_integer_equal_q [a b])
+(defnativefn >  mal_integer_gt_q  [a b])
+(defnativefn >= mal_integer_gte_q [a b])
+(defnativefn <  mal_integer_lt_q  [a b])
+(defnativefn <= mal_integer_lte_q [a b])
 
 (defnativefn integer? mal_integer_q [obj])
 (defnativefn nil?     mal_nil_q [obj])
