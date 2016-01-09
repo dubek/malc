@@ -58,18 +58,32 @@ define private %mal_obj @mal_true_q(%mal_obj %obj) {
   ret %mal_obj %2
 }
 
+; Returns nil, false, true - for these constants
+;         1 - integer
+;         17/18/19 - symbol/string/keyword
+;         33/34/35 - list/vector/hash-map
+;         49 - atom
+;         65 - env
+;         66 - function
 define private %mal_obj @mal_get_type(%mal_obj %obj) {
-  %1 = icmp ugt i64 %obj, 6
-  br i1 %1, label %IfObj, label %IfConst
+  %1 = and i64 %obj, 1
+  %2 = icmp eq i64 %1, 1
+  br i1 %2, label %IfInt, label %IfConstOrObj
+IfConstOrObj:
+  %3 = icmp ugt i64 %obj, 6
+  br i1 %3, label %IfObj, label %IfConst
 IfObj:
-  %2 = inttoptr %mal_obj %obj to %mal_obj_header_t*
-  %3 = getelementptr %mal_obj_header_t* %2, i32 0, i32 0
-  %4 = load i32* %3
-  %5 = sext i32 %4 to i64
-  %6 = call %mal_obj @make_integer(i64 %5)
-  ret %mal_obj %6
+  %4 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %5 = getelementptr %mal_obj_header_t* %4, i32 0, i32 0
+  %6 = load i32* %5
+  %7 = sext i32 %6 to i64
+  %8 = call %mal_obj @make_integer(i64 %7)
+  ret %mal_obj %8
 IfConst:
   ret %mal_obj %obj
+IfInt:
+  %9 = call %mal_obj @make_integer(i64 1)
+  ret %mal_obj %9
 }
 
 define private i32 @mal_get_len_i32(%mal_obj %obj) {
