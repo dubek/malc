@@ -150,6 +150,19 @@
 (defnativefn assoc1 assoc1 [hm key val]
   (_concat_elementarrays 35 (dissoc1 hm key) [key val]))
 
+(defnativefn keys-vals-helper keys_vals_helper [hm hm_index result result_index]
+  (if (>= hm_index (_get_len hm))
+    result
+    (do
+      (_set_elementarray_item result result_index (nth hm hm_index))
+      (keys-vals-helper hm (+ 2 hm_index) result (+ 1 result_index)))))
+
+(defnativefn keys keys [hm]
+  (keys-vals-helper hm 0 (make-list (/ (_get_len hm) 2)) 0))
+
+(defnativefn vals vals [hm]
+  (keys-vals-helper hm 1 (make-list (/ (_get_len hm) 2)) 0))
+
 ;;
 ;; Atoms
 ;;

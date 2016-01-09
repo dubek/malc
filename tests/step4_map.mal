@@ -24,3 +24,8 @@
 ;; EXPECTED: {:a 11 :c 33}
 (printlnobj (dissoc1 (hash-map-from-list [:a 11 :b 22 :c 33]) :z) false)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
+
+(printlnobj (keys (hash-map-from-list [:a 11 :b 22 :c 33])) false)
+;; EXPECTED: (:a :b :c)
+(printlnobj (vals (hash-map-from-list [:a 11 :b 22 :c 33])) false)
+;; EXPECTED: (11 22 33)
