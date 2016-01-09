@@ -1,5 +1,29 @@
-(printlnobj ( atom  7 ) false)
+(def! atm ( atom 7 ))
+(printlnobj atm false)
 ;; EXPECTED: (atom 7)
+(printlnobj (deref atm) false)
+;; EXPECTED: 7
+(printlnobj @atm false)
+;; EXPECTED: 7
+
+(printlnobj (reset! atm 13) false)
+;; EXPECTED: 13
+(printlnobj atm false)
+;; EXPECTED: (atom 13)
+(printlnobj (deref atm) false)
+;; EXPECTED: 13
+(printlnobj @atm false)
+;; EXPECTED: 13
+
+(printlnobj (atom? atm) false)
+;; EXPECTED: true
+(printlnobj (atom? 13) false)
+;; EXPECTED: false
+
+(printlnobj (= atm (atom 13)) false)
+;; EXPECTED: true
+(printlnobj (= atm 13) false)
+;; EXPECTED: false
 
 (printlnobj (deref (atom 9)) false)
 ;; EXPECTED: 9

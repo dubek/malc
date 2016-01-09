@@ -38,6 +38,7 @@
 ;;
 (defnativefn printobj printobj [obj readable])
 (defnativefn printlnobj printlnobj [obj readable])
+(defnativefn deref deref [atm])
 
 ;;
 ;; Runtime error
@@ -46,13 +47,6 @@
   (do
     (printlnobj msg false)
     (os-exit 1)))
-
-;;
-;; Simple boolean operations for native functions
-;;
-(defnativefn mal_and mal_and [x y] (if x y false))
-(defnativefn mal_or mal_or [x y] (if x true y))
-(defnativefn mal_not mal_not [x] (if x false true))
 
 (defnativefn make-list make_list [len] (_make_elementarray_obj 33 len))
 (defnativefn make-vector make_vector [len] (_make_elementarray_obj 34 len))
@@ -73,24 +67,25 @@
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
 (defnativefn function? function_Q [obj] (_integer_equal? 66 (_get_type obj)))
 
-(defnativefn equal_bytearray_content? equal_bytearray_content_Q [a b]
-  (mal_and (_integer_equal? (_get_len a) (_get_len b)) (_bytearray_equal? a b)))
+(defnativefn sequential? sequential_Q [obj]
+  (if (list? obj) true (vector? obj)))
 
-(defnativefn equal_bytearray_types? equal_bytearray_types_Q [a b]
-  (cond
-    (mal_and (symbol? a) (symbol? b)) (equal_bytearray_content? a b)
-    (mal_and (string? a) (string? b)) (equal_bytearray_content? a b)
-    (mal_and (keyword? a) (keyword? b)) (equal_bytearray_content? a b)
-    :else false))
+(defnativefn equal_bytearray_content? equal_bytearray_content_Q [a b]
+  (if (_integer_equal? (_get_len a) (_get_len b))
+    (_bytearray_equal? a b)
+    false))
 
 (defnativefn = equal_Q [a b]
   (cond
-    (nil? a) (nil? b)
-    (true? a) (true? b)
-    (false? a) (false? b)
-    (integer? a) (mal_and (integer? b) (_integer_equal? a b))
-    (mal_or (mal_or (symbol? a) (string? a)) (keyword? a)) (equal_bytearray_types? a b)
-    :else false)) ; TODO vector/list/map/atom
+    (nil? a)     (nil? b)
+    (true? a)    (true? b)
+    (false? a)   (false? b)
+    (integer? a) (if (integer? b) (_integer_equal? a b) false)
+    (symbol? a)  (if (symbol? b)  (equal_bytearray_content? a b))
+    (string? a)  (if (string? b)  (equal_bytearray_content? a b))
+    (keyword? a) (if (keyword? b) (equal_bytearray_content? a b))
+    (atom? a)    (if (atom? b) (= @a @b) false)
+    :else        false)) ; TODO vector/list/map
 
 (defnativefn count count [obj] (_get_len obj))
 (defnativefn empty? empty_Q [obj] (= 0 (count obj)))
@@ -169,12 +164,12 @@
 (defnativefn atom atom [val]
   (_set_elementarray_item (make-atom) 0 val))
 
-(defnativefn deref deref [atom]
-  (_get_elementarray_item atom 0))
+(defnativefn deref deref [atm]
+  (_get_elementarray_item atm 0))
 
-(defnativefn reset! reset_BANG [atom val]
+(defnativefn reset! reset_BANG [atm val]
   (do
-    (_set_elementarray_item atom 0 val)
+    (_set_elementarray_item atm 0 val)
     val))
 
 ;;
