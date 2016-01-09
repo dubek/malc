@@ -1,11 +1,17 @@
 # TODO
 
 missing from language
-- varargs (& args)
 - list / vector / hash-map
+- conj / concat
 - assoc / dissoc with varargs
-- exceptions
-- apply / swap!
+- exceptions / throw / try-catch
+- apply / map / swap!
+- str / pr-str / prn / println
+- readline
+- slurp
+- meta / with-meta
+
+- read-string (big effort!!)
 
 - deduplicate strings list
 - debugging symbols somehow
