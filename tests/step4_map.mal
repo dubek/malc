@@ -17,14 +17,22 @@
 (printlnobj hm false)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 
-(printlnobj (assoc1 hm :d 44) false)
+(printlnobj (assoc hm :d 44) false)
 ;; EXPECTED: {:a 11 :b 22 :c 33 :d 44}
-(printlnobj (assoc1 hm :a 55) false)
+(printlnobj (assoc hm :a 55) false)
 ;; EXPECTED: {:b 22 :c 33 :a 55}
+(printlnobj (assoc hm :z 44 :b 55 :y 66) false)
+;; EXPECTED: {:a 11 :c 33 :z 44 :b 55 :y 66}
+(printlnobj hm false)
+;; EXPECTED: {:a 11 :b 22 :c 33}
 
-(printlnobj (dissoc1 hm :b) false)
+(printlnobj (dissoc hm :b) false)
 ;; EXPECTED: {:a 11 :c 33}
-(printlnobj (dissoc1 hm :z) false)
+(printlnobj (dissoc hm :z) false)
+;; EXPECTED: {:a 11 :b 22 :c 33}
+(printlnobj (dissoc hm :a :z :c) false)
+;; EXPECTED: {:b 22}
+(printlnobj hm false)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 
 (printlnobj (keys hm) false)

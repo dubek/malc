@@ -2,7 +2,6 @@
 
 missing from language
 - conj / concat
-- assoc / dissoc with varargs
 - exceptions / throw / try-catch
 - apply / map / swap!
 - str / pr-str / prn / println

@@ -5,3 +5,23 @@
 (def! vector (fn* [& args] (_concat_elementarrays 34 args [])))
 
 (def! hash-map (fn* [& args] (hash-map-from-list args)))
+
+(def! assoc-list
+  (fn* [result remain-args]
+    (if (empty? remain-args)
+      result
+      (assoc-list (assoc1 result (nth remain-args 0) (nth remain-args 1)) (drop remain-args 2)))))
+
+(def! assoc
+  (fn* [hm & args]
+    (assoc-list hm args)))
+
+(def! dissoc-list
+  (fn* [result remain-args]
+    (if (empty? remain-args)
+      result
+      (dissoc-list (dissoc1 result (first remain-args)) (rest remain-args)))))
+
+(def! dissoc
+  (fn* [hm & args]
+    (dissoc-list hm args)))
