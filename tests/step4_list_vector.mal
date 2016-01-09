@@ -4,8 +4,20 @@
 (printlnobj '(11 22 33) false)
 ;; EXPECTED: (11 22 33)
 
+(printlnobj (list 11 22 33) false)
+;; EXPECTED: (11 22 33)
+
+(printlnobj (list? '(11 22 33)) false)
+;; EXPECTED: true
+
 (printlnobj [] false)
 ;; EXPECTED: []
 
 (printlnobj [11 22 33] false)
 ;; EXPECTED: [11 22 33]
+
+(printlnobj (vector 11 22 33) false)
+;; EXPECTED: [11 22 33]
+
+(printlnobj (vector? [11 22 33]) false)
+;; EXPECTED: true

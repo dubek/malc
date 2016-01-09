@@ -1,0 +1,7 @@
+; These mal functions are included automatically at the top of the program
+
+(def! list (fn* [& args] args))
+
+(def! vector (fn* [& args] (_concat_elementarrays 34 args [])))
+
+(def! hash-map (fn* [& args] (hash-map-from-list args)))

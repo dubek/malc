@@ -1,7 +1,6 @@
 # TODO
 
 missing from language
-- list / vector / hash-map
 - conj / concat
 - assoc / dissoc with varargs
 - exceptions / throw / try-catch

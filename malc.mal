@@ -426,13 +426,17 @@
 
 (def! compile-program-string
   (fn* [s]
-    (do
-      (emit (slurp "header.ll"))
-      (emit (compile nil (read-string (str "(do " (slurp "nativefuncs.mal") ")")) 'native-func))
-      (emit (define-mal-func "@mal_prog_main" (read-string (str "(do " s ")"))))
-      (emit-functions-definitions)
-      (emit-strings-list)
-      (emit (slurp "footer.ll")))))
+    (let* [nativefuncs-ast (read-string (str "(do " (slurp "nativefuncs.mal") ")"))
+           core-impl-ast (read-string (str "(do " (slurp "core-impl.mal") ")"))
+           user-prog-ast (read-string (str "(do " s ")"))
+           whole-ast (list 'do core-impl-ast user-prog-ast)]
+      (do
+        (emit (slurp "header.ll"))
+        (emit (compile nil nativefuncs-ast 'native-func))
+        (emit (define-mal-func "@mal_prog_main" whole-ast))
+        (emit-functions-definitions)
+        (emit-strings-list)
+        (emit (slurp "footer.ll"))))))
 
 (def! compile-program-file
   (fn* [filename]
