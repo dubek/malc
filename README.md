@@ -59,4 +59,14 @@ flags:
 
 * Index 0: `arg_names` - Vector of symbols (argument names)
 * Index 1: `env` - Env
-* Index 2: `func_ptr` - Function pointer (of type: %mal_obj fn(%mal_obj env))
+* Index 2: `func_ptr` - Function pointer (of type: `%mal_obj fn(%mal_obj env)`)
+
+67 - 0x43 - NativeFunc - implemented as a vector with three elements:
+
+* Index 0: `arg_names` - Vector of symbols (argument names)
+* Index 1: `name` - Symbol (function name)
+* Index 2: `func_ptr` - Function pointer, of one of the following types (according to length of `arg_names`):
+  - 0 arguments: `%mal_obj()`
+  - 1 arguments: `%mal_obj(%mal_obj)`
+  - 2 arguments: `%mal_obj(%mal_obj,%mal_obj)`
+  - 3 arguments: `%mal_obj(%mal_obj,%mal_obj,%mal_obj)`

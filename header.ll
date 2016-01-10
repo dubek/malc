@@ -291,6 +291,44 @@ define private %mal_obj @mal_slice_elementarray(%mal_obj %newobjtype, %mal_obj %
   ret %mal_obj %new_obj
 }
 
+define private %mal_obj @mal_native_func_apply_list(%mal_obj %fn, %mal_obj %argslist) {
+  %i0 = call %mal_obj @make_integer(i64 0)
+  %i1 = call %mal_obj @make_integer(i64 1)
+  %i2 = call %mal_obj @make_integer(i64 2)
+  %args_names = call %mal_obj @fn_args_names(%mal_obj %fn)
+  %args_num = call i32 @mal_get_len_i32(%mal_obj %args_names)
+  %funcptr = call %mal_obj @fn_func_ptr(%mal_obj %fn)
+  switch i32 %args_num, label %TooMany [ i32 0, label %ZeroArgs
+                                         i32 1, label %OneArg
+                                         i32 2, label %TwoArgs
+                                         i32 3, label %ThreeArgs ]
+ZeroArgs:
+  %casted_funcptr_0 = inttoptr %mal_obj %funcptr to %mal_obj()*
+  %result_0 = call %mal_obj %casted_funcptr_0()
+  ret %mal_obj %result_0
+OneArg:
+  %arg_0_1 = call %mal_obj @mal_get_elementarray_item(%mal_obj %argslist, %mal_obj %i0)
+  %casted_funcptr_1 = inttoptr %mal_obj %funcptr to %mal_obj(%mal_obj)*
+  %result_1 = call %mal_obj %casted_funcptr_1(%mal_obj %arg_0_1)
+  ret %mal_obj %result_1
+TwoArgs:
+  %arg_0_2 = call %mal_obj @mal_get_elementarray_item(%mal_obj %argslist, %mal_obj %i0)
+  %arg_1_2 = call %mal_obj @mal_get_elementarray_item(%mal_obj %argslist, %mal_obj %i1)
+  %casted_funcptr_2 = inttoptr %mal_obj %funcptr to %mal_obj(%mal_obj,%mal_obj)*
+  %result_2 = call %mal_obj %casted_funcptr_2(%mal_obj %arg_0_2, %mal_obj %arg_1_2)
+  ret %mal_obj %result_2
+ThreeArgs:
+  %arg_0_3 = call %mal_obj @mal_get_elementarray_item(%mal_obj %argslist, %mal_obj %i0)
+  %arg_1_3 = call %mal_obj @mal_get_elementarray_item(%mal_obj %argslist, %mal_obj %i1)
+  %arg_2_3 = call %mal_obj @mal_get_elementarray_item(%mal_obj %argslist, %mal_obj %i2)
+  %casted_funcptr_3 = inttoptr %mal_obj %funcptr to %mal_obj(%mal_obj,%mal_obj,%mal_obj)*
+  %result_3 = call %mal_obj %casted_funcptr_3(%mal_obj %arg_0_3, %mal_obj %arg_1_3, %mal_obj %arg_2_3)
+  ret %mal_obj %result_3
+TooMany:
+  call %mal_obj @runtime_error(%mal_obj %i0)
+  ret %mal_obj 0
+}
+
 define private %mal_obj @mal_func_apply_list(%mal_obj %fn, %mal_obj %argslist) {
   %funcenv = call %mal_obj @fn_env(%mal_obj %fn)
   %binds = call %mal_obj @fn_args_names(%mal_obj %fn)

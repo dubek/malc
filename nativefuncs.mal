@@ -30,6 +30,7 @@
 (defnativefn _printraw       mal_printraw [obj])
 (defnativefn _printbytearray mal_printbytearray [obj])
 
+(defnativefn native-func-apply-list mal_native_func_apply_list [fn argslist])
 (defnativefn func-apply-list mal_func_apply_list [fn argslist])
 
 (defnativefn time-ms mal_time_ms [])
@@ -56,6 +57,7 @@
 (defnativefn make-atom make_atom [] (_make_elementarray_obj 49 1))
 (defnativefn make-env make_env [] (_make_elementarray_obj 65 2))
 (defnativefn make-func make_func [] (_make_elementarray_obj 66 3))
+(defnativefn make-native-func make_native_func [] (_make_elementarray_obj 67 3))
 
 (defnativefn cons cons [x y]
   (_set_elementarray_item (_set_elementarray_item (make-list 2) 0 x) 1 y))
@@ -68,6 +70,7 @@
 (defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
 (defnativefn function? function_Q [obj] (_integer_equal? 66 (_get_type obj)))
+(defnativefn native-function? native_function_Q [obj] (_integer_equal? 67 (_get_type obj)))
 
 (defnativefn sequential? sequential_Q [obj]
   (if (list? obj) true (vector? obj)))
@@ -233,6 +236,9 @@
 (defnativefn fn-func-ptr fn_func_ptr [fn]
   (_get_elementarray_item fn 2))
 
+(defnativefn nativefn-name nativefn_name [fn]
+  (_get_elementarray_item fn 1))
+
 (defnativefn printelements printelements [obj readable index]
   (if (>= index (_get_len obj))
     nil
@@ -273,6 +279,13 @@
     (function? obj)
       (do
         (_printbytearray "#<function args=")
+        (printobj (fn-args-names obj) readable)
+        (_printbytearray ">"))
+    (native-function? obj)
+      (do
+        (_printbytearray "#<native-function ")
+        (_printbytearray (nativefn-name obj))
+        (_printbytearray " args=")
         (printobj (fn-args-names obj) readable)
         (_printbytearray ">"))
     :else

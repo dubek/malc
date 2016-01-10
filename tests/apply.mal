@@ -1,4 +1,9 @@
+;
+; Test apply with Mal functions
+;
 (def! f1 (fn* [x y] (+ x y)))
+(printlnobj f1 false)
+;; EXPECTED: #<function args=(x y)>
 
 (printlnobj (apply f1 [3 4]) false)
 ;; EXPECTED: 7
@@ -6,3 +11,19 @@
 ;; EXPECTED: 7
 (printlnobj (apply f1 3 [4]) false)
 ;; EXPECTED: 7
+
+;
+; Test apply with native functions
+;
+(printlnobj + false)
+;; EXPECTED: #<native-function mal_add args=(a b)>
+
+(printlnobj (apply + [3 4]) false)
+;; EXPECTED: 7
+(printlnobj (apply + 3 4 []) false)
+;; EXPECTED: 7
+(printlnobj (apply + 3 [4]) false)
+;; EXPECTED: 7
+
+(printlnobj (apply count [[2 4 6]]) false)
+;; EXPECTED: 3

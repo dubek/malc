@@ -150,12 +150,20 @@
       (append-lines
         (debug-line "compile-apply:" result ast)
         (cond
-          (native-func? funcname)
-            (compile-apply-native-func result ast env-type)
+          (= env-type 'native-func)
+            (cond
+              (native-func? funcname)
+                (compile-apply-native-func result ast env-type)
+              :else
+                (throw (str "Unknown function '" funcname "'")))
+
           (= env-type 'mal-env)
-            (compile-apply-mal-func result ast env-type)
-          'else
-            (throw (str "Unknown function '" funcname "'")))))))
+            (if (native-func? funcname)
+              (compile-apply-native-func result ast env-type) ; Optimized function application for built-in functions
+              (compile-apply-mal-func result ast env-type))
+
+          :else
+            (throw "Unknown env-type"))))))
 
 (def! compile-native-func
   (fn* [name llvm-name params body]
@@ -172,6 +180,41 @@
             (line "} ; end of native func " llvm-name)
             (line ""))
           (line ""))))))
+
+(def! llvm-func-type
+  (fn* [args-num]
+    (cond
+      (= args-num 0) "%mal_obj()*"
+      (= args-num 1) "%mal_obj(%mal_obj)*"
+      (= args-num 2) "%mal_obj(%mal_obj,%mal_obj)*"
+      (= args-num 3) "%mal_obj(%mal_obj,%mal_obj,%mal_obj)*"
+      :else          (throw "Too many arguments to native func"))))
+
+(def! compile-nativefn
+  (fn* [result ast env-type]
+    (let* [llvm-name (nth ast 1)
+           args-names (nth ast 2)
+           args-num (count args-names)
+           args-names-reg (new-reg)
+           llvm-name-reg (new-reg)
+           func-ptr-reg (new-reg)
+           n0 (new-reg)
+           n1 (new-reg)
+           n2 (new-reg)]
+      (append-lines
+        (compile-literal-list args-names-reg args-names env-type)
+        (compile-literal llvm-name-reg llvm-name env-type)
+        (line-assign result "call %mal_obj @make_native_func()")
+        (compile-const-integer n0 0)
+        (compile-const-integer n1 1)
+        (compile-const-integer n2 2)
+        (line "call %mal_obj @mal_set_elementarray_item("
+              "%mal_obj" result ", %mal_obj" n0 ", %mal_obj" args-names-reg ")")
+        (line "call %mal_obj @mal_set_elementarray_item("
+              "%mal_obj" result ", %mal_obj" n1 ", %mal_obj" llvm-name-reg ")")
+        (line-assign func-ptr-reg "ptrtoint" (llvm-func-type args-num) (str "@" llvm-name) "to %mal_obj")
+        (line "call %mal_obj @mal_set_elementarray_item("
+              "%mal_obj" result ", %mal_obj" n2 ", %mal_obj" func-ptr-reg ")")))))
 
 (def! compile-if
   (fn* [result ast env-type]
@@ -265,6 +308,9 @@
 
         (= 'fn* a0)
           (compile-fn result ast env-type)
+
+        (= 'nativefn* a0)
+          (compile-nativefn result ast env-type)
 
         (= 'defnativefn a0)
           (apply compile-native-func (rest ast))
