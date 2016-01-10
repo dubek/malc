@@ -25,3 +25,9 @@
 (def! dissoc
   (fn* [hm & args]
     (dissoc-list hm args)))
+
+(def! apply
+  (fn* [f & args]
+    (if (<= (count args) 1)
+      (func-apply-list f (first args))
+      (func-apply-list f (_concat_elementarrays 33 (_slice_elementarray 33 args 0 (- (count args) 1)) (last args))))))

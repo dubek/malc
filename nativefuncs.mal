@@ -30,6 +30,8 @@
 (defnativefn _printraw       mal_printraw [obj])
 (defnativefn _printbytearray mal_printbytearray [obj])
 
+(defnativefn func-apply-list mal_func_apply_list [fn argslist])
+
 (defnativefn time-ms mal_time_ms [])
 (defnativefn os-exit mal_os_exit [exitcode])
 
@@ -93,6 +95,11 @@
   (if (empty? seq)
     nil
     (_get_elementarray_item seq 0)))
+
+(defnativefn last last [seq]
+  (if (empty? seq)
+    nil
+    (_get_elementarray_item seq (- (_get_len seq) 1))))
 
 (defnativefn drop drop [seq nitems]
   (if (> (count seq) nitems)

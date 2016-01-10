@@ -291,6 +291,16 @@ define private %mal_obj @mal_slice_elementarray(%mal_obj %newobjtype, %mal_obj %
   ret %mal_obj %new_obj
 }
 
+define private %mal_obj @mal_func_apply_list(%mal_obj %fn, %mal_obj %argslist) {
+  %funcenv = call %mal_obj @fn_env(%mal_obj %fn)
+  %binds = call %mal_obj @fn_args_names(%mal_obj %fn)
+  %callenv = call %mal_obj @new_env(%mal_obj %funcenv, %mal_obj %binds, %mal_obj %argslist)
+  %funcptr = call %mal_obj @fn_func_ptr(%mal_obj %fn)
+  %casted_funcptr = inttoptr %mal_obj %funcptr to %mal_obj(%mal_obj)*
+  %result = call %mal_obj %casted_funcptr(%mal_obj %callenv)
+  ret %mal_obj %result
+}
+
 define private %mal_obj @mal_add(%mal_obj %a, %mal_obj %b) {
   %1 = call i64 @mal_integer_to_raw(%mal_obj %a)
   %2 = call i64 @mal_integer_to_raw(%mal_obj %b)
