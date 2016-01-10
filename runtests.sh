@@ -13,7 +13,8 @@ test_one() {
   fi
   $exe > tests/tmp/test_output
   if [[ $? != 0 ]] ; then
-    echo "ERROR running $testfile"
+    echo "ERROR running $testfile: test output:"
+    cat tests/tmp/test_output
     exit 1
   fi
   sed -ne 's/^;; *EXPECTED: *//p' $testfile > tests/tmp/expected_output
