@@ -29,13 +29,18 @@
   (fn* [hm & args]
     (dissoc-list hm args)))
 
+(def! apply-helper
+  (fn* [fn argslist]
+    (if (native-function? fn)
+      (native-func-apply-list fn argslist)
+      (func-apply-list fn argslist))))
+
 (def! apply
   (fn* [f & args]
-    (let* [apply-helper
-           (fn* [fn argslist]
-             (if (native-function? fn)
-               (native-func-apply-list fn argslist)
-               (func-apply-list fn argslist)))]
-      (if (<= (count args) 1)
-        (apply-helper f (first args))
-        (apply-helper f (_concat_elementarrays 33 (_slice_elementarray 33 args 0 (- (count args) 1)) (last args)))))))
+    (if (<= (count args) 1)
+      (apply-helper f (first args))
+      (apply-helper f (_concat_elementarrays 33 (_slice_elementarray 33 args 0 (- (count args) 1)) (last args))))))
+
+(def! swap!
+  (fn* [atm f & args]
+    (reset! atm (apply-helper f (_concat_elementarrays 33 [@atm] args)))))

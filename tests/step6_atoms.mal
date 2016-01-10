@@ -27,3 +27,36 @@
 
 (printlnobj (deref (atom 9)) false)
 ;; EXPECTED: 9
+
+;
+; Test swap!
+;
+(def! inc3 (fn* (a) (+ 3 a)))
+(def! a (atom 3))
+
+(printlnobj (swap! a inc3) false)
+;; EXPECTED: 6
+
+(printlnobj (deref a) false)
+;; EXPECTED: 6
+
+(printlnobj (swap! a (fn* (a) a)) false)
+;; EXPECTED: 6
+
+(printlnobj (swap! a (fn* (a) (* 2 a))) false)
+;; EXPECTED: 12
+
+(printlnobj (swap! a (fn* (a b) (* a b)) 10) false)
+;; EXPECTED: 120
+
+(printlnobj (swap! a + 3) false)
+;; EXPECTED: 123
+
+;; Testing swap!/closure interaction
+(def! inc-it (fn* (a) (+ 1 a)))
+(def! atm (atom 7))
+(def! f (fn* [] (swap! atm inc-it)))
+(printlnobj (f) false)
+;; EXPECTED: 8
+(printlnobj (f) false)
+;; EXPECTED: 9

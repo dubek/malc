@@ -4,7 +4,7 @@ missing from language
 - compile hash-maps {:a 1 :b 2}
 - conj / concat
 - exceptions / throw / try-catch
-- apply / map / swap!
+- map
 - str / pr-str / prn / println
 - readline
 - slurp
