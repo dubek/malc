@@ -29,6 +29,10 @@
   (fn* [hm & args]
     (dissoc-list hm args)))
 
+(def! concat
+  (fn* [& args]
+    (concat-helper (make-list 0) args)))
+
 (def! apply-helper
   (fn* [fn argslist]
     (if (native-function? fn)

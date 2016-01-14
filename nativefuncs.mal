@@ -117,6 +117,11 @@
     (runtime-error "nth: index out of range")
     (_get_elementarray_item seq index)))
 
+(defnativefn concat-helper concat_helper [result lists]
+  (if (empty? lists)
+    result
+    (concat-helper (_concat_elementarrays 33 result (first lists)) (rest lists))))
+
 (defnativefn hash-map-from-list hash_map_from_list [lst]
   (_concat_elementarrays 35 lst []))
 

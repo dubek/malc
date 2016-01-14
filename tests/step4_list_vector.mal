@@ -21,3 +21,10 @@
 
 (printlnobj (vector? [11 22 33]) false)
 ;; EXPECTED: true
+
+(printlnobj (concat) false)
+;; EXPECTED: ()
+(printlnobj (concat (list 11 22)) false)
+;; EXPECTED: (11 22)
+(printlnobj (concat (list 11 22) [33 44] '(55 66)) false)
+;; EXPECTED: (11 22 33 44 55 66)

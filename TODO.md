@@ -2,7 +2,7 @@
 
 missing from language
 - compile hash-maps {:a 1 :b 2}
-- conj / concat
+- conj
 - exceptions / throw / try-catch
 - map
 - str / pr-str / prn / println
