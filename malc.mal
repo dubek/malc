@@ -39,9 +39,9 @@
 
 (def! *native-funcs* (atom {}))
 (def! add-native-func
-  (fn* [name llvm-name]
+  (fn* [name llvm-name llvm-args]
     (do
-      (swap! *native-funcs* assoc (symbol name) ['llvm-func (str "@" llvm-name)]))))
+      (swap! *native-funcs* assoc (symbol name) ['llvm-func llvm-name llvm-args]))))
 
 (def! debug-line
   (fn* [& args]
@@ -122,7 +122,7 @@
         (debug-line "compile-apply-native-func:" result ast)
         (append-lines-seq
           (map (fn* [re] (compile (first re) (nth re 1) env-type)) argregs-with-exprs))
-          (line result "= call %mal_obj" llvm-func-name "(" (string/join ", " argregs-with-types) ")")))))
+          (line result "= call %mal_obj" (str "@" llvm-func-name) "(" (string/join ", " argregs-with-types) ")")))))
 
 (def! compile-apply-mal-func
   (fn* [result ast env-type]
@@ -169,7 +169,7 @@
   (fn* [name llvm-name params body]
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
-        (add-native-func name llvm-name)
+        (add-native-func name llvm-name params)
         (if body
           (append-lines
             (line "")
@@ -190,11 +190,9 @@
       (= args-num 3) "%mal_obj(%mal_obj,%mal_obj,%mal_obj)*"
       :else          (throw "Too many arguments to native func"))))
 
-(def! compile-nativefn
-  (fn* [result ast env-type]
-    (let* [llvm-name (nth ast 1)
-           args-names (nth ast 2)
-           args-num (count args-names)
+(def! compile-nativefn-value
+  (fn* [result llvm-name args-names]
+    (let* [args-num (count args-names)
            args-names-reg (new-reg)
            llvm-name-reg (new-reg)
            func-ptr-reg (new-reg)
@@ -202,8 +200,8 @@
            n1 (new-reg)
            n2 (new-reg)]
       (append-lines
-        (compile-literal-list args-names-reg args-names env-type)
-        (compile-literal llvm-name-reg llvm-name env-type)
+        (compile-literal-list args-names-reg args-names 'native-func)
+        (compile-literal llvm-name-reg llvm-name 'native-func)
         (line-assign result "call %mal_obj @make_native_func()")
         (compile-const-integer n0 0)
         (compile-const-integer n1 1)
@@ -309,9 +307,6 @@
         (= 'fn* a0)
           (compile-fn result ast env-type)
 
-        (= 'nativefn* a0)
-          (compile-nativefn result ast env-type)
-
         (= 'defnativefn a0)
           (apply compile-native-func (rest ast))
 
@@ -328,6 +323,12 @@
     (cond
       (= env-type 'native-func)
         (line-assign-to-reg result (str "%" var-name))
+
+      (native-func? var-name)
+        (let* [funcobj (get-native-func var-name)
+               llvm-func-name (nth funcobj 1)
+               llvm-func-args (nth funcobj 2)]
+          (compile-nativefn-value result llvm-func-name llvm-func-args))
 
       (= env-type 'mal-env)
         (let* [var-name-reg (new-reg)]

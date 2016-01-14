@@ -1,8 +1,5 @@
 ; These mal functions are included automatically at the top of the program
 
-(def! + (nativefn* mal_add [a b]))
-(def! count (nativefn* count [lst]))
-
 (def! list (fn* [& args] args))
 
 (def! vector (fn* [& args] (_concat_elementarrays 34 args [])))
