@@ -383,6 +383,26 @@
         (append-lines-seq lines)
         (compile-elementarray result 34 regs env-type)))))
 
+(def! map-to-list-helper
+  (fn* [hm result ks] 
+    (if (empty? ks)
+      result
+      (map-to-list-helper hm (concat result [(first ks) (get hm (first ks))]) (rest ks)))))
+
+(def! map-to-list
+  (fn* [hm]
+    (map-to-list-helper hm [] (keys hm))))
+
+(def! compile-hash-map
+  (fn* [result ast env-type]
+    (let* [lst (map-to-list ast)
+           regs (map new-reg lst)
+           regs-and-exprs (zip regs lst)
+           lines (map (fn* [re] (compile (first re) (nth re 1) env-type)) regs-and-exprs)]
+      (append-lines
+        (append-lines-seq lines)
+        (compile-elementarray result 35 regs env-type)))))
+
 (def! compile-fn
   (fn* [result ast env-type]
     (let* [func-name (new-func-name)
@@ -450,7 +470,8 @@
           (symbol? exp-ast) (compile-variable result exp-ast env-type)
           (literal? exp-ast) (compile-literal result exp-ast env-type)
           (list? exp-ast) (compile-list result exp-ast env-type)
-          (vector? exp-ast) (compile-vector result exp-ast env-type))))))
+          (vector? exp-ast) (compile-vector result exp-ast env-type)
+          (map? exp-ast) (compile-hash-map result exp-ast env-type))))))
 
 (def! define-mal-func
   (fn* [name body]
