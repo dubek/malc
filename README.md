@@ -2,9 +2,19 @@
 
 mal (Make A Lisp) compiler
 
-## Object structure
+## Usage
 
-`mal_val_t` is a 32-bit value which can be one of the following:
+Run the `malc` wrapper script with the mal program file as the argument:
+
+    ./malc myprogram.mal
+
+If successful, this will generate the executable `myprogram`.
+
+## Implementation internal details
+
+### Object structure
+
+`mal_val_t` is a 64-bit value which can be one of the following:
 
 * Integer
 * Constant (nil, false, true)
@@ -12,13 +22,18 @@ mal (Make A Lisp) compiler
 
 ### Integers
 
-(`the_int_value << 1`) & 0x1
+Integer are 63-bit integers shifted to the left by one bit. The least
+significant is set to 1:
+
+    (the_int_value << 1) | 0x1
 
 ### Constants
 
-nil = 0x00000002
-false = 0x00000004
-true = 0x00000006
+The three constant values are represented by the following 64-bit values:
+
+* `nil`: 0x02
+* `false`: 0x04
+* `true`: 0x06
 
 ### Objects
 
@@ -26,13 +41,13 @@ true = 0x00000006
 
 ```
 struct mal_obj_t {
-  uint32_t flags;
+  uint32_t type;
   uint32_t len;
   byte* data;
 }
 ```
 
-flags:
+type:
 
 17 - 0x11 - symbol
 18 - 0x12 - string
