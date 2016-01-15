@@ -10,6 +10,7 @@ missing from language
 
 - read-string (big effort!!)
 
+- better errors (for example, calling + with non-integer arguments, or wrong number of arguments)
 - deduplicate strings list
 - debugging symbols somehow
 
