@@ -27,3 +27,21 @@
 
 (printlnobj (apply count [[2 4 6]]) false)
 ;; EXPECTED: 3
+
+;
+; Test map with Mal functions
+;
+(def! add3 (fn* [a] (+ 3 a)))
+
+(printlnobj (map add3 [5 6 7 8]) false)
+;; EXPECTED: (8 9 10 11)
+(printlnobj (map add3 []) false)
+;; EXPECTED: ()
+
+;
+; Test map with native functions
+;
+(printlnobj (map count [[5 6] [7] [] [8 9 10 11]]) false)
+;; EXPECTED: (2 1 0 4)
+(printlnobj (map count (list)) false)
+;; EXPECTED: ()

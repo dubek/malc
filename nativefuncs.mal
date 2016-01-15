@@ -236,6 +236,17 @@
     (native-func-apply-list fn argslist)
     (func-apply-list fn argslist)))
 
+
+(defnativefn map-helper map_helper [result index fn seq]
+  (if (>= index (count seq))
+    result
+    (do
+      (_set_elementarray_item result index (apply-helper fn [(nth seq index)]))
+      (map-helper result (+ 1 index) fn seq))))
+
+(defnativefn map map [fn seq]
+  (map-helper (make-list (count seq)) 0 fn seq))
+
 ;;
 ;; Function
 ;;

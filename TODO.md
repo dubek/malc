@@ -3,7 +3,6 @@
 missing from language
 - conj
 - exceptions / throw / try-catch
-- map
 - str / pr-str / prn / println
 - readline
 - slurp
