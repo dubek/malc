@@ -4,7 +4,6 @@ missing from language
 - conj
 - exceptions / throw / try-catch
 - str / pr-str / prn / println
-- slurp
 - meta / with-meta
 
 - read-string (big effort!!)

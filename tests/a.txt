@@ -1,0 +1,6 @@
+Hello
+This is a file
+used to test
+the slurp function
+of Mal.
+Bye!

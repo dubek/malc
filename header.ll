@@ -2,6 +2,8 @@
 
 %struct.timeval = type { i64, i64 }
 %struct.timezone = type { i32, i32 }
+%struct.timespec = type { i64, i64 }
+%struct.stat = type { i64, i64, i64, i32, i32, i32, i32, i64, i64, i64, i64, %struct.timespec, %struct.timespec, %struct.timespec, [3 x i64] }
 
 declare i32 @putchar(i32)
 declare i32 @printf(i8*, ...)
@@ -11,6 +13,10 @@ declare i8* @calloc(i32, i32)
 declare i32 @strlen(i8*)
 declare void @free(i8*)
 declare i32 @gettimeofday(%struct.timeval*, %struct.timezone*)
+declare i32 @stat(i8*, %struct.stat*)
+declare i32 @open(i8*, i32, ...)
+declare i64 @read(i32, i8*, i64)
+declare i32 @close(i32)
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
 declare i8* @readline(i8*) ; Link with -lreadline
 
@@ -184,11 +190,8 @@ define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8
   store i32 %objtype, i32* %2
   %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
   store i32 %len_bytes, i32* %3
-
-  ; %bytearrayptr = call i8* @calloc(i32 %len_bytes, i32 1)
   %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
   store i8* %bytes, i8** %4
-
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
 }
@@ -410,6 +413,29 @@ GotString:
   %linecopy = call i8* @calloc(i32 %len_bytes, i32 1)
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %linecopy, i8* %line, i32 %len_bytes, i32 0, i1 0)
   %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes, i8* %linecopy)
+  ret %mal_obj %resstr
+}
+
+define private %mal_obj @mal_slurp(%mal_obj %filename) {
+  ; Get the filename
+  %st = alloca %struct.stat, align 8
+  %filenameobj = inttoptr %mal_obj %filename to %mal_obj_header_t*
+  %filenamestrptr = getelementptr %mal_obj_header_t* %filenameobj, i32 0, i32 2
+  %filenamestr = load i8** %filenamestrptr
+  ; Get the file size in bytes
+  call i32 @stat(i8* %filenamestr, %struct.stat* %st)
+  %sizeptr = getelementptr inbounds %struct.stat* %st, i32 0, i32 8
+  %sizebytes = load i64* %sizeptr, align 8
+  %sizebytes_with_nullchar = add i64 %sizebytes, 1
+  %bufsize_i32 = trunc i64 %sizebytes_with_nullchar to i32
+  ; Allocate buffer for file content
+  %buf = call i8* @calloc(i32 %bufsize_i32, i32 1)
+  ; Open-Read-Close
+  %fd = call i32 (i8*, i32, ...)* @open(i8* %filenamestr, i32 0)
+  call i64 @read(i32 %fd, i8* %buf, i64 %sizebytes)
+  call i32 @close(i32 %fd)
+  ; Build a Mal string object with the file's content
+  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %bufsize_i32, i8* %buf)
   ret %mal_obj %resstr
 }
 
