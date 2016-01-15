@@ -13,4 +13,4 @@ fi
 $MAL malc.mal $1 > $base.ll
 opt -S -O3 $base.ll -o $base.opt.ll
 llc -filetype=obj $base.opt.ll -o $base.o
-gcc $base.o -o $base
+gcc $base.o -lreadline -o $base

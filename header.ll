@@ -6,11 +6,13 @@
 declare i32 @putchar(i32)
 declare i32 @printf(i8*, ...)
 declare i32 @exit(i32)
-declare i32 @memcmp(i8*, i8*, i32);
+declare i32 @memcmp(i8*, i8*, i32)
 declare i8* @calloc(i32, i32)
+declare i32 @strlen(i8*)
 declare void @free(i8*)
 declare i32 @gettimeofday(%struct.timeval*, %struct.timezone*)
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
+declare i8* @readline(i8*) ; Link with -lreadline
 
 %mal_obj = type i64
 
@@ -390,6 +392,25 @@ define private %mal_obj @mal_os_exit(%mal_obj %exitcode) {
   %2 = trunc i64 %1 to i32
   call i32 @exit(i32 %2)
   ret %mal_obj 0
+}
+
+define private %mal_obj @mal_readline(%mal_obj %prompt) {
+  %promptobj = inttoptr %mal_obj %prompt to %mal_obj_header_t*
+  %promptstrptr = getelementptr %mal_obj_header_t* %promptobj, i32 0, i32 2
+  %promptstr = load i8** %promptstrptr
+  %line = call i8* @readline(i8* %promptstr)
+  %islinenull = icmp eq i8* %line, null
+  br i1 %islinenull, label %GotEof, label %GotString
+GotEof:
+  %resnil = call %mal_obj @make_nil()
+  ret %mal_obj %resnil
+GotString:
+  %len_bytes_without_nullchar = call i32 @strlen(i8* %line)
+  %len_bytes = add i32 %len_bytes_without_nullchar, 1
+  %linecopy = call i8* @calloc(i32 %len_bytes, i32 1)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %linecopy, i8* %line, i32 %len_bytes, i32 0, i1 0)
+  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes, i8* %linecopy)
+  ret %mal_obj %resstr
 }
 
 @printf_format_lld = private unnamed_addr constant [5 x i8] c"%lld\00"

@@ -35,6 +35,7 @@
 
 (defnativefn time-ms mal_time_ms [])
 (defnativefn os-exit mal_os_exit [exitcode])
+(defnativefn readline mal_readline [prompt])
 
 ;;
 ;; Forward declaration
