@@ -12,8 +12,8 @@
 
 (def! *current-label* (atom 0))
 (def! new-label
-  (fn* []
-    (str "label" (swap! *current-label* inc))))
+  (fn* [role]
+    (str "label" (swap! *current-label* inc) role)))
 
 (def! *current-func-name* (atom 0))
 (def! new-func-name
@@ -223,9 +223,9 @@
            cond-reg (new-reg)
            tmp-true-result (new-reg)
            tmp-false-result (new-reg)
-           true-label (new-label)
-           false-label (new-label)
-           after-if-label (new-label)]
+           true-label (new-label ".if_true")
+           false-label (new-label ".if_false")
+           after-if-label (new-label ".if_end")]
       (append-lines
         (line-assign result-stack-reg "alloca %mal_obj")
         (compile cond-reg cond-exp env-type)
