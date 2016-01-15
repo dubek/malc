@@ -30,12 +30,6 @@
   (fn* [& args]
     (concat-helper (make-list 0) args)))
 
-(def! apply-helper
-  (fn* [fn argslist]
-    (if (native-function? fn)
-      (native-func-apply-list fn argslist)
-      (func-apply-list fn argslist))))
-
 (def! apply
   (fn* [f & args]
     (if (<= (count args) 1)

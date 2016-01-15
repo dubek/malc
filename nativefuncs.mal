@@ -230,6 +230,13 @@
     v))
 
 ;;
+;; apply and map
+(defnativefn apply-helper apply_helper [fn argslist]
+  (if (native-function? fn)
+    (native-func-apply-list fn argslist)
+    (func-apply-list fn argslist)))
+
+;;
 ;; Function
 ;;
 (defnativefn fn-args-names fn_args_names [fn]
