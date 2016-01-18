@@ -394,6 +394,7 @@ define private %mal_obj @mal_os_exit(%mal_obj %exitcode) {
   %1 = call i64 @mal_integer_to_raw(%mal_obj %exitcode)
   %2 = trunc i64 %1 to i32
   call i32 @exit(i32 %2)
+  unreachable
   ret %mal_obj 0
 }
 
