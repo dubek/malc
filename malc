@@ -1,16 +1,21 @@
 #!/bin/sh
-
-if [ -z "$MAL" ] ; then
-  MAL="ruby ../mal/ruby/stepA_mal.rb"
-fi
-
 set -e
-if [ -n "$2" ] ; then
-  base="$2"
-else
-  base="$(dirname $1)/$(basename $1 .mal)"
+
+if [ -z "$1" ] ; then
+  echo "Usage: $0 sourcefile.mal [outputexecutable]"
+  exit 1
 fi
-$MAL malc.mal $1 > $base.ll
-opt -S -O3 $base.ll -o $base.opt.ll
-llc -filetype=obj $base.opt.ll -o $base.o
-gcc $base.o -lgc -lreadline -o $base
+
+bindir=$(dirname $0)
+srcfile=$(readlink -f $1)
+if [ -n "$2" ] ; then
+  out="$2"
+else
+  out="$(dirname $srcfile)/$(basename $srcfile .mal)"
+fi
+
+cd $bindir
+mal-interpreter/mal malc.mal $srcfile > $out.ll
+opt -S -O3 $out.ll -o $out.opt.ll
+llc -filetype=obj $out.opt.ll -o $out.o
+gcc $out.o -lgc -lreadline -o $out
