@@ -13,4 +13,3 @@ missing from language
 - debugging symbols somehow
 
 - TCO
-- GC

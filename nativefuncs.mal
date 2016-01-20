@@ -35,6 +35,8 @@
 
 (defnativefn time-ms mal_time_ms [])
 (defnativefn os-exit mal_os_exit [exitcode])
+(defnativefn gc-get-heap-size mal_gc_get_heap_size [])
+(defnativefn gc-get-total-bytes mal_gc_get_total_bytes [])
 (defnativefn readline mal_readline [prompt])
 (defnativefn slurp mal_slurp [filename])
 

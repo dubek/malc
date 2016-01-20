@@ -9,16 +9,22 @@ declare i32 @putchar(i32)
 declare i32 @printf(i8*, ...)
 declare i32 @exit(i32)
 declare i32 @memcmp(i8*, i8*, i32)
-declare i8* @calloc(i32, i32)
+; declare i8* @calloc(i32, i32)
 declare i32 @strlen(i8*)
-declare void @free(i8*)
 declare i32 @gettimeofday(%struct.timeval*, %struct.timezone*)
 declare i32 @stat(i8*, %struct.stat*)
 declare i32 @open(i8*, i32, ...)
 declare i64 @read(i32, i8*, i64)
 declare i32 @close(i32)
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
-declare i8* @readline(i8*) ; Link with -lreadline
+
+declare i8* @readline(i8*)          ; Link with -lreadline
+
+declare void @GC_init()             ; Link with -lgc
+declare i8* @GC_malloc(i64)
+declare i8* @GC_malloc_atomic(i64)
+declare i64 @GC_get_heap_size()
+declare i64 @GC_get_total_bytes()
 
 %mal_obj = type i64
 
@@ -177,9 +183,9 @@ define private %mal_obj @make_true() {
 }
 
 define private %mal_obj_header_t* @alloc_obj_header() {
-  %mal_obj_header_temp = getelementptr %mal_obj_header_t* null, i32 1
-  %mal_obj_header_t_size = ptrtoint %mal_obj_header_t* %mal_obj_header_temp to i32
-  %1 = call i8* @calloc(i32 1, i32 %mal_obj_header_t_size)
+  %mal_obj_header_temp = getelementptr %mal_obj_header_t* null, i64 1
+  %mal_obj_header_t_size = ptrtoint %mal_obj_header_t* %mal_obj_header_temp to i64
+  %1 = call i8* @GC_malloc(i64 %mal_obj_header_t_size)
   %2 = bitcast i8* %1 to %mal_obj_header_t*
   ret %mal_obj_header_t* %2
 }
@@ -222,6 +228,7 @@ define private %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %
 
   %len_elements.i64 = call i64 @mal_integer_to_raw(%mal_obj %len_elements)
   %len_elements.i32 = trunc i64 %len_elements.i64 to i32
+  %bytes = mul i64 %len_elements.i64, 8
 
   %1 = call %mal_obj_header_t* @alloc_obj_header()
 
@@ -230,7 +237,7 @@ define private %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %
   %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
   store i32 %len_elements.i32, i32* %3
 
-  %elementarrayptr = call i8* @calloc(i32 %len_elements.i32, i32 8)
+  %elementarrayptr = call i8* @GC_malloc(i64 %bytes)
   %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
   store i8* %elementarrayptr, i8** %4
 
@@ -398,6 +405,18 @@ define private %mal_obj @mal_os_exit(%mal_obj %exitcode) {
   ret %mal_obj 0
 }
 
+define private %mal_obj @mal_gc_get_heap_size() {
+  %1 = call i64 @GC_get_heap_size()
+  %2 = call %mal_obj @make_integer(i64 %1)
+  ret %mal_obj %2
+}
+
+define private %mal_obj @mal_gc_get_total_bytes() {
+  %1 = call i64 @GC_get_total_bytes()
+  %2 = call %mal_obj @make_integer(i64 %1)
+  ret %mal_obj %2
+}
+
 define private %mal_obj @mal_readline(%mal_obj %prompt) {
   %promptobj = inttoptr %mal_obj %prompt to %mal_obj_header_t*
   %promptstrptr = getelementptr %mal_obj_header_t* %promptobj, i32 0, i32 2
@@ -411,7 +430,8 @@ GotEof:
 GotString:
   %len_bytes_without_nullchar = call i32 @strlen(i8* %line)
   %len_bytes = add i32 %len_bytes_without_nullchar, 1
-  %linecopy = call i8* @calloc(i32 %len_bytes, i32 1)
+  %len_bytes.i64 = sext i32 %len_bytes to i64
+  %linecopy = call i8* @GC_malloc_atomic(i64 %len_bytes.i64)
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %linecopy, i8* %line, i32 %len_bytes, i32 0, i1 0)
   %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes, i8* %linecopy)
   ret %mal_obj %resstr
@@ -430,7 +450,7 @@ define private %mal_obj @mal_slurp(%mal_obj %filename) {
   %sizebytes_with_nullchar = add i64 %sizebytes, 1
   %bufsize_i32 = trunc i64 %sizebytes_with_nullchar to i32
   ; Allocate buffer for file content
-  %buf = call i8* @calloc(i32 %bufsize_i32, i32 1)
+  %buf = call i8* @GC_malloc_atomic(i64 %sizebytes_with_nullchar)
   ; Open-Read-Close
   %fd = call i32 (i8*, i32, ...)* @open(i8* %filenamestr, i32 0)
   call i64 @read(i32 %fd, i8* %buf, i64 %sizebytes)
