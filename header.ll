@@ -6,10 +6,10 @@
 %struct.stat = type { i64, i64, i64, i32, i32, i32, i32, i64, i64, i64, i64, %struct.timespec, %struct.timespec, %struct.timespec, [3 x i64] }
 
 declare i32 @putchar(i32)
-declare i32 @printf(i8*, ...)
+declare i32 @printf(i8* readonly, ...)
+declare i32 @snprintf(i8*, i64, i8* readonly, ...)
 declare i32 @exit(i32)
 declare i32 @memcmp(i8*, i8*, i32)
-; declare i8* @calloc(i32, i32)
 declare i32 @strlen(i8*)
 declare i32 @gettimeofday(%struct.timeval*, %struct.timezone*)
 declare i32 @stat(i8*, %struct.stat*)
@@ -200,6 +200,46 @@ define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8
   store i8* %bytes, i8** %4
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
+}
+
+define private %mal_obj @mal_empty_bytearray_obj(%mal_obj %objtype, %mal_obj %len_bytes) {
+  %objtype.i64 = call i64 @mal_integer_to_raw(%mal_obj %objtype)
+  %objtype.i32 = trunc i64 %objtype.i64 to i32
+  %len_bytes.i64 = call i64 @mal_integer_to_raw(%mal_obj %len_bytes)
+  %buf_len = add i64 %len_bytes.i64, 1 ; space for terminating NULL char
+  %strptr = call i8* @GC_malloc_atomic(i64 %buf_len)
+  %buf_len.i32 = trunc i64 %buf_len to i32
+  %strobj = call %mal_obj @mal_make_bytearray_obj(i32 %objtype.i32, i32 %buf_len.i32, i8* %strptr)
+  ret %mal_obj %strobj
+}
+
+define private %mal_obj @mal_set_bytearray_range(%mal_obj %dstobj, %mal_obj %offset, %mal_obj %len, %mal_obj %srcobj) {
+  %dst_hdr_ptr = inttoptr %mal_obj %dstobj to %mal_obj_header_t*
+  %dst_buf_ptr = getelementptr %mal_obj_header_t* %dst_hdr_ptr, i32 0, i32 2
+  %dst_buf = load i8** %dst_buf_ptr
+  %offset.i64 = call i64 @mal_integer_to_raw(%mal_obj %offset)
+  %len.i64 = call i64 @mal_integer_to_raw(%mal_obj %len)
+  %len.i32 = trunc i64 %len.i64 to i32
+  %src_hdr_ptr = inttoptr %mal_obj %srcobj to %mal_obj_header_t*
+  %src_buf_ptr = getelementptr %mal_obj_header_t* %src_hdr_ptr, i32 0, i32 2
+  %src_buf = load i8** %src_buf_ptr
+  %dst_buf_offset_ptr = getelementptr i8* %dst_buf, i64 %offset.i64
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst_buf_offset_ptr, i8* %src_buf, i32 %len.i32, i32 0, i1 0)
+  ret %mal_obj %dstobj
+}
+
+@snprintf_format_ld = private unnamed_addr constant [4 x i8] c"%ld\00"
+define private %mal_obj @mal_integer_to_string(%mal_obj %intobj) {
+  %num = call i64 @mal_integer_to_raw(%mal_obj %intobj)
+  %vector = alloca [32 x i8]
+  %buf = getelementptr inbounds [32 x i8]* %vector, i64 0, i64 0
+  %len_bytes_without_nullchar = call i32 (i8*, i64, i8*, ...)* @snprintf(i8* %buf, i64 32, i8* getelementptr inbounds ([4 x i8]* @snprintf_format_ld, i32 0, i32 0), i64 %num)
+  %len_bytes = add i32 %len_bytes_without_nullchar, 1
+  %len_bytes.i64 = sext i32 %len_bytes to i64
+  %bufcopy = call i8* @GC_malloc_atomic(i64 %len_bytes.i64)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %bufcopy, i8* %buf, i32 %len_bytes, i32 0, i1 0)
+  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes, i8* %bufcopy)
+  ret %mal_obj %resstr
 }
 
 ; Compare two bytearrays. Length must be equal.

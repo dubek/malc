@@ -25,6 +25,10 @@
 (defnativefn _slice_elementarray    mal_slice_elementarray [newobjtype obj from len])
 (defnativefn _bytearray_equal?      mal_bytearray_equal_q [a b])
 
+(defnativefn _empty_bytearray_obj mal_empty_bytearray_obj [objtype len_bytes])
+(defnativefn _set_bytearray_range mal_set_bytearray_range [dstobj offset len srcobj])
+(defnativefn _integer_to_string   mal_integer_to_string   [intobj])
+
 (defnativefn _printchar      mal_printchar [obj])
 (defnativefn _printnumber    mal_printnumber [obj])
 (defnativefn _printraw       mal_printraw [obj])

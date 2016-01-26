@@ -1,0 +1,12 @@
+(def! s (_empty_bytearray_obj 18 10))
+(_set_bytearray_range s 0 4 "ABCD")
+(_set_bytearray_range s 4 3 "efg")
+(_set_bytearray_range s 7 3 "HIJ")
+(printlnobj s true)
+;; EXPECTED: "ABCDefgHIJ"
+
+(printlnobj (_integer_to_string 98765) true)
+;; EXPECTED: "98765"
+
+(printlnobj (_get_len (_integer_to_string 12345)) true)
+;; EXPECTED: 6
