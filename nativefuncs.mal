@@ -94,9 +94,9 @@
     (true? a)    (true? b)
     (false? a)   (false? b)
     (integer? a) (if (integer? b) (_integer_equal? a b) false)
-    (symbol? a)  (if (symbol? b)  (equal_bytearray_content? a b))
-    (string? a)  (if (string? b)  (equal_bytearray_content? a b))
-    (keyword? a) (if (keyword? b) (equal_bytearray_content? a b))
+    (symbol? a)  (if (symbol? b) (equal_bytearray_content? a b) false)
+    (string? a)  (if (string? b) (equal_bytearray_content? a b) false)
+    (keyword? a) (if (keyword? b) (equal_bytearray_content? a b) false)
     (atom? a)    (if (atom? b) (= @a @b) false)
     :else        false)) ; TODO vector/list/map
 
