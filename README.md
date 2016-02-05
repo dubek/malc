@@ -66,6 +66,15 @@ To run a specific test file:
 See [internals documentation](doc/internals.md).
 
 
+## Additions to Mal
+
+The following functions were added:
+
+* `(os_exit EXITCODE)` - exits the process with the given integer exit code.
+* `(gc-get-heap-size)` - Boehm GC's `GC_get_heap_size()`
+* `(gc-get-total-bytes)` - Boehm GC's `GC_get_total_bytes()`
+
+
 ## What's missing?
 
 A lot. See the [TODO list](doc/TODO.md).
