@@ -21,8 +21,17 @@ Compiler features:
   or wrong number of arguments)
 - deduplicate strings list
 - add debugging symbols (-g)
+- hide malc's internal functions (those defined in nativefuncs.mal) so they
+  won't be visible from the user's Mal program
+
+Performance:
+
+- don't compile the "standard library" every time.  Compile `nativefuncs.mal`
+  into an object file or archive once, and just link it to any Mal program that
+  is compiled.
+- hash tables are linear lists with O(n) lookup/add/remove complexity.
 
 Tests:
 
-- Automatically convert test suites from the Mal project to executable testable
+- automatically convert test suites from the Mal project to executable testable
   programs compiled by malc
