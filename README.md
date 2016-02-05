@@ -68,7 +68,7 @@ See [internals documentation](doc/internals.md).
 
 ## What's missing?
 
-A lot. See [TODO.md](TODO.md).
+A lot. See the [TODO list](doc/TODO.md).
 
 
 ## License
