@@ -1,17 +1,21 @@
 # malc
 
-mal (Make A Lisp) compiler
+Mal (Make A Lisp) compiler
 
 ## Overview
 
-[mal](https://github.com/kanaka/mal) is Clojure inspired Lisp language invented
+[Mal](https://github.com/kanaka/mal) is Clojure inspired Lisp language invented
 by Joel Martin as a learning tool.  It has interpreter implementations in dozens
-of programming languages, including self-hosted interpreter written in mal
+of programming languages, including self-hosted interpreter written in Mal
 itself.
 
-malc is a compiler for mal, written in mal itself.  It compiles a mal program to
+malc is a compiler for Mal, written in Mal itself.  It compiles a Mal program to
 [LLVM assembly language (IR)](http://llvm.org/docs/LangRef.html), and then uses
 the LLVM optimizer, assembler and gcc linker to produce a binary executable.
+
+This project main goal was a way for me to learn about Lisp, compilation and
+LLVM.  It is not intended for use in any serious application or system.
+
 
 ## Installation
 
@@ -27,9 +31,11 @@ To install the dependencies on RedHat/CentOS:
 
     sudo yum install llvm gc-devel
 
-Besides these dependencies, malc needs a working mal interpreter; malc comes
-bundled with the Ruby implementation of the mal interpreter to ease the usage.
-A working Ruby runtime is also required.
+Besides these dependencies, malc needs a working Mal interpreter; malc comes
+bundled with the Ruby implementation of the Mal interpreter (in
+`mal-interpreter` directory) to easier invocation of malc.  Hence, a working
+Ruby runtime is required.
+
 
 ## Usage
 
@@ -37,7 +43,10 @@ Run the `malc` wrapper script with the mal program file as the argument:
 
     ./malc myprogram.mal
 
-If successful, this will generate the executable `myprogram`.
+If successful, this will generate the executable `myprogram`.  The executable
+dynamically links with `libc` and `libgc` (the Boehm Garbage Collection
+shared library).
+
 
 ## Running tests
 
@@ -51,9 +60,16 @@ To run a specific test file:
 
     ./runtests.sh tests/integer_compare.mal
 
+
 ## Implementation details
 
 See [internals documentation](doc/internals.md).
+
+
+## What's missing?
+
+A lot. See [TODO.md](TODO.md).
+
 
 ## License
 
