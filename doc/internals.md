@@ -1,11 +1,11 @@
 # malc internals
 
 This document specifies some internal details about the implementation of malc
-(mal compiler).
+(Mal compiler).
 
 ### Object structure
 
-`%mal_obj` is a 64-bit value which can be one of the following:
+`%mal_obj` is a 64-bit value which can hold one of the following:
 
 * Integer
 * Constant (nil, false, true)
@@ -13,7 +13,7 @@ This document specifies some internal details about the implementation of malc
 
 ### Integers
 
-Integers are represent as a `%mal_obj` value which has it's least significant
+Integers are represent as a `%mal_obj` value which has its least significant
 bit set. The upper 63 bits hold the integer itself. To represent an integer `X`
 as `%mal_obj`:
 
@@ -29,7 +29,7 @@ The three constant values are represented by the following 64-bit values:
 
 ### Objects
 
-If a `%mal_obj` is not an integer and not a constant, then it is treated as a
+If a `%mal_obj` is not an integer and not a constant, it is treated as a
 pointer to a `%mal_obj_header_t` struct (16 bytes struct):
 
 ```
@@ -45,10 +45,10 @@ The `data` field can point into either a bytearray (`char*`) or an elementarray
 
 #### Bytearray objects ####
 
-Mal types symbol, string and keyword are held internally as bytearray objects.
-For these objects, the `len` field in the object header holds the length of the
-string pointed by `data` in bytes (including a terminating null char).  `data`
-of course points to the byte array itself.
+Mal types *symbol*, *string* and *keyword* are held internally as bytearray
+objects.  For these objects, the `len` field in the object header holds the
+length of the string pointed by `data` in bytes (including a terminating null
+char).  `data` of course points to the byte array itself.
 
 The type field indicates the Mal type:
 
@@ -59,7 +59,7 @@ The type field indicates the Mal type:
 #### Elementarray objects ####
 
 All other Mal types (list, vector, hash-map and atom), are held internally as
-elementarray objects. In those objects, the `len` fields holds the number of
+elementarray objects.  In those objects, the `len` fields holds the number of
 elements in the `data`, and `data` points to an array of `%mal_obj` elements
 (which in turn can be of any type - integer, boolean, string, vector, etc.).
 
@@ -70,15 +70,16 @@ The type field indicates the Mal type:
 * 35 - Hash-map
 * 49 - Atom
 
-Lists and vectors are simple - an N-element list (or vector) is stored as an
-elementarray with length N.
+*Lists* and *vectors* are simple - an N-element list (or vector) is stored as
+an elementarray with length N.
 
-Hash-maps are stored as an element array of alternating keys and values (K1,
+*Hash-maps* are stored as an element array of alternating keys and values (K1,
 V1, K2, V2, ...); note that the `len` field for hash-maps will be twice than
 the number of keys in the hash. Also note that this is a very naive (read:
 slow) implementation; key lookup is performed with an O(n) linear search.
 
-Atoms are stored as an elementarray with exactly one element (the atom's value).
+*Atoms* are stored as an elementarray with exactly one element (the atom's
+value).
 
 #### Internal types ####
 
