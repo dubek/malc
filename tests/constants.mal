@@ -1,22 +1,22 @@
 ;; Testing printing of constants
 
-(printlnobj nil false)
+(println nil)
 ;; EXPECTED: nil
 
-(printlnobj false false)
+(println false)
 ;; EXPECTED: false
 
-(printlnobj true false)
+(println true)
 ;; EXPECTED: true
 
-(printlnobj 'symbol1234567 false)
+(println 'symbol1234567)
 ;; EXPECTED: symbol1234567
 
-(printlnobj "string12345" false)
+(println "string12345")
 ;; EXPECTED: string12345
 
-(printlnobj "string12345" true)
+(prn "string12345")
 ;; EXPECTED: "string12345"
 
-(printlnobj :keyword123 false)
+(println :keyword123)
 ;; EXPECTED: :keyword123

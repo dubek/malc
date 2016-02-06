@@ -1,34 +1,34 @@
 (def! x 4)
-(printlnobj x false)
+(println x)
 ;; EXPECTED: 4
 
-(printlnobj (let* (z 9) z) false)
+(println (let* (z 9) z))
 ;; EXPECTED: 9
-(printlnobj (let* (x 9) x) false)
+(println (let* (x 9) x))
 ;; EXPECTED: 9
-(printlnobj x false)
+(println x)
 ;; EXPECTED: 4
 
-(printlnobj (let* (z (+ 2 3)) (+ 1 z)) false)
+(println (let* (z (+ 2 3)) (+ 1 z)))
 ;; EXPECTED: 6
-(printlnobj (let* (p (+ 2 3) q (+ 2 p)) (+ p q)) false)
+(println (let* (p (+ 2 3) q (+ 2 p)) (+ p q)))
 ;; EXPECTED: 12
 
 ;; Testing outer environment
 (def! a 4)
-(printlnobj (let* (q 9) q) false)
+(println (let* (q 9) q))
 ;; EXPECTED: 9
-(printlnobj (let* (q 9) a) false)
+(println (let* (q 9) a))
 ;; EXPECTED: 4
-(printlnobj (let* (z 2) (let* (q 9) a)) false)
+(println (let* (z 2) (let* (q 9) a)))
 ;; EXPECTED: 4
 
 ;; Testing let* with vector bindings
-(printlnobj (let* [z 9] z) false)
+(println (let* [z 9] z))
 ;; EXPECTED: 9
-(printlnobj (let* [p (+ 2 3) q (+ 2 p)] (+ p q)) false)
+(println (let* [p (+ 2 3) q (+ 2 p)] (+ p q)))
 ;; EXPECTED: 12
 
 ;; Testing vector evaluation
-(printlnobj (let* (a 5 b 6) [3 4 a [b 7] 8]) false)
+(println (let* (a 5 b 6) [3 4 a [b 7] 8]))
 ;; EXPECTED: [3 4 5 [6 7] 8]

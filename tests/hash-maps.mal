@@ -1,47 +1,47 @@
 (def! hm (hash-map :a 11 :b 22 :c 33))
 
-(printlnobj (get hm :a) false)
+(println (get hm :a))
 ;; EXPECTED: 11
-(printlnobj (get hm :b) false)
+(println (get hm :b))
 ;; EXPECTED: 22
-(printlnobj (get hm :c) false)
+(println (get hm :c))
 ;; EXPECTED: 33
-(printlnobj (get hm :z) false)
+(println (get hm :z))
 ;; EXPECTED: nil
 
-(printlnobj (contains? hm :b) false)
+(println (contains? hm :b))
 ;; EXPECTED: true
-(printlnobj (contains? hm :z) false)
+(println (contains? hm :z))
 ;; EXPECTED: false
 
-(printlnobj hm false)
+(println hm)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 
-(printlnobj (assoc hm :d 44) false)
+(println (assoc hm :d 44))
 ;; EXPECTED: {:a 11 :b 22 :c 33 :d 44}
-(printlnobj (assoc hm :a 55) false)
+(println (assoc hm :a 55))
 ;; EXPECTED: {:b 22 :c 33 :a 55}
-(printlnobj (assoc hm :z 44 :b 55 :y 66) false)
+(println (assoc hm :z 44 :b 55 :y 66))
 ;; EXPECTED: {:a 11 :c 33 :z 44 :b 55 :y 66}
-(printlnobj hm false)
+(println hm)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 
-(printlnobj (dissoc hm :b) false)
+(println (dissoc hm :b))
 ;; EXPECTED: {:a 11 :c 33}
-(printlnobj (dissoc hm :z) false)
+(println (dissoc hm :z))
 ;; EXPECTED: {:a 11 :b 22 :c 33}
-(printlnobj (dissoc hm :a :z :c) false)
+(println (dissoc hm :a :z :c))
 ;; EXPECTED: {:b 22}
-(printlnobj hm false)
+(println hm)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 
-(printlnobj (keys hm) false)
+(println (keys hm))
 ;; EXPECTED: (:a :b :c)
-(printlnobj (vals hm) false)
+(println (vals hm))
 ;; EXPECTED: (11 22 33)
 
-(printlnobj { :a  11 :b  22 :c 33 } false)
+(println { :a  11 :b  22 :c 33 })
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 
-(printlnobj {  } false)
+(println {  })
 ;; EXPECTED: {}

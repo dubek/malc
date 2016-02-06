@@ -1,13 +1,14 @@
-(def! content (slurp "tests/a.txt"))
+(def! content (slurp "tests/slurp_test.txt"))
 
-; The file size plus 1 terminating null char
-(printlnobj (_get_len content) false)
-;; EXPECTED: 67
+; The file size
+(println (_get_len content))
+;; EXPECTED: 66
 
-(printobj content false)
+(println content)
 ;; EXPECTED: Hello
 ;; EXPECTED: This is a file
 ;; EXPECTED: used to test
 ;; EXPECTED: the slurp function
 ;; EXPECTED: of Mal.
 ;; EXPECTED: Bye!
+;; EXPECTED:

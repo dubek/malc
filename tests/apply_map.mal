@@ -2,30 +2,30 @@
 ; Test apply with Mal functions
 ;
 (def! f1 (fn* [x y] (+ x y)))
-(printlnobj f1 false)
+(println f1)
 ;; EXPECTED: #<function args=(x y)>
 
-(printlnobj (apply f1 [3 4]) false)
+(println (apply f1 [3 4]))
 ;; EXPECTED: 7
-(printlnobj (apply f1 3 4 []) false)
+(println (apply f1 3 4 []))
 ;; EXPECTED: 7
-(printlnobj (apply f1 3 [4]) false)
+(println (apply f1 3 [4]))
 ;; EXPECTED: 7
 
 ;
 ; Test apply with native functions
 ;
-(printlnobj + false)
+(println +)
 ;; EXPECTED: #<native-function mal_add args=(a b)>
 
-(printlnobj (apply + [3 4]) false)
+(println (apply + [3 4]))
 ;; EXPECTED: 7
-(printlnobj (apply + 3 4 []) false)
+(println (apply + 3 4 []))
 ;; EXPECTED: 7
-(printlnobj (apply + 3 [4]) false)
+(println (apply + 3 [4]))
 ;; EXPECTED: 7
 
-(printlnobj (apply count [[2 4 6]]) false)
+(println (apply count [[2 4 6]]))
 ;; EXPECTED: 3
 
 ;
@@ -33,15 +33,15 @@
 ;
 (def! add3 (fn* [a] (+ 3 a)))
 
-(printlnobj (map add3 [5 6 7 8]) false)
+(println (map add3 [5 6 7 8]))
 ;; EXPECTED: (8 9 10 11)
-(printlnobj (map add3 []) false)
+(println (map add3 []))
 ;; EXPECTED: ()
 
 ;
 ; Test map with native functions
 ;
-(printlnobj (map count [[5 6] [7] [] [8 9 10 11]]) false)
+(println (map count [[5 6] [7] [] [8 9 10 11]]))
 ;; EXPECTED: (2 1 0 4)
-(printlnobj (map count (list)) false)
+(println (map count (list)))
 ;; EXPECTED: ()

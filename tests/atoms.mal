@@ -1,31 +1,31 @@
 (def! atm ( atom 7 ))
-(printlnobj atm false)
+(println atm)
 ;; EXPECTED: (atom 7)
-(printlnobj (deref atm) false)
+(println (deref atm))
 ;; EXPECTED: 7
-(printlnobj @atm false)
+(println @atm)
 ;; EXPECTED: 7
 
-(printlnobj (reset! atm 13) false)
+(println (reset! atm 13))
 ;; EXPECTED: 13
-(printlnobj atm false)
+(println atm)
 ;; EXPECTED: (atom 13)
-(printlnobj (deref atm) false)
+(println (deref atm))
 ;; EXPECTED: 13
-(printlnobj @atm false)
+(println @atm)
 ;; EXPECTED: 13
 
-(printlnobj (atom? atm) false)
+(println (atom? atm))
 ;; EXPECTED: true
-(printlnobj (atom? 13) false)
+(println (atom? 13))
 ;; EXPECTED: false
 
-(printlnobj (= atm (atom 13)) false)
+(println (= atm (atom 13)))
 ;; EXPECTED: true
-(printlnobj (= atm 13) false)
+(println (= atm 13))
 ;; EXPECTED: false
 
-(printlnobj (deref (atom 9)) false)
+(println (deref (atom 9)))
 ;; EXPECTED: 9
 
 ;
@@ -34,29 +34,29 @@
 (def! inc3 (fn* (a) (+ 3 a)))
 (def! a (atom 3))
 
-(printlnobj (swap! a inc3) false)
+(println (swap! a inc3))
 ;; EXPECTED: 6
 
-(printlnobj (deref a) false)
+(println (deref a))
 ;; EXPECTED: 6
 
-(printlnobj (swap! a (fn* (a) a)) false)
+(println (swap! a (fn* (a) a)))
 ;; EXPECTED: 6
 
-(printlnobj (swap! a (fn* (a) (* 2 a))) false)
+(println (swap! a (fn* (a) (* 2 a))))
 ;; EXPECTED: 12
 
-(printlnobj (swap! a (fn* (a b) (* a b)) 10) false)
+(println (swap! a (fn* (a b) (* a b)) 10))
 ;; EXPECTED: 120
 
-(printlnobj (swap! a + 3) false)
+(println (swap! a + 3))
 ;; EXPECTED: 123
 
 ;; Testing swap!/closure interaction
 (def! inc-it (fn* (a) (+ 1 a)))
 (def! atm (atom 7))
 (def! f (fn* [] (swap! atm inc-it)))
-(printlnobj (f) false)
+(println (f))
 ;; EXPECTED: 8
-(printlnobj (f) false)
+(println (f))
 ;; EXPECTED: 9

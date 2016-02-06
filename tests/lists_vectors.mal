@@ -1,30 +1,56 @@
-(printlnobj '() false)
+(println '())
 ;; EXPECTED: ()
-
-(printlnobj '(11 22 33) false)
+(println '(11 22 33))
 ;; EXPECTED: (11 22 33)
-
-(printlnobj (list 11 22 33) false)
+(println (list 11 22 33))
 ;; EXPECTED: (11 22 33)
-
-(printlnobj (list? '(11 22 33)) false)
+(println (list? '(11 22 33)))
 ;; EXPECTED: true
 
-(printlnobj [] false)
+(println [])
 ;; EXPECTED: []
-
-(printlnobj [11 22 33] false)
+(println [11 22 33])
 ;; EXPECTED: [11 22 33]
-
-(printlnobj (vector 11 22 33) false)
+(println (vector 11 22 33))
 ;; EXPECTED: [11 22 33]
-
-(printlnobj (vector? [11 22 33]) false)
+(println (vector? [11 22 33]))
 ;; EXPECTED: true
 
-(printlnobj (concat) false)
+(println (concat))
 ;; EXPECTED: ()
-(printlnobj (concat (list 11 22)) false)
+(println (concat (list 11 22)))
 ;; EXPECTED: (11 22)
-(printlnobj (concat (list 11 22) [33 44] '(55 66)) false)
+(println (concat (list 11 22) [33 44] '(55 66)))
 ;; EXPECTED: (11 22 33 44 55 66)
+
+(def! a '(11 22 33 44 55))
+(println (count a))
+;; EXPECTED: 5
+(println (empty? a))
+;; EXPECTED: false
+(println (empty? '()))
+;; EXPECTED: true
+(println (first a))
+;; EXPECTED: 11
+(println (rest a))
+;; EXPECTED: (22 33 44 55)
+(println (rest '()))
+;; EXPECTED: ()
+(println (rest '(11)))
+;; EXPECTED: ()
+
+(def! b [11 22 33 44 55])
+(println (count b))
+;; EXPECTED: 5
+(println (empty? b))
+;; EXPECTED: false
+(println (empty? []))
+;; EXPECTED: true
+(println (first b))
+;; EXPECTED: 11
+(println (rest b))
+;; EXPECTED: (22 33 44 55)
+(println (rest []))
+;; EXPECTED: ()
+(println (rest [11]))
+;; EXPECTED: ()

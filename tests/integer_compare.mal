@@ -1,19 +1,19 @@
-(printlnobj (> 8 8) false)
+(println (> 8 8))
 ;; EXPECTED: false
-(printlnobj (> 9 8) false)
+(println (> 9 8))
 ;; EXPECTED: true
 
-(printlnobj (>= 8 8) false)
+(println (>= 8 8))
 ;; EXPECTED: true
-(printlnobj (>= 9 8) false)
+(println (>= 9 8))
 ;; EXPECTED: true
 
-(printlnobj (< 8 8) false)
+(println (< 8 8))
 ;; EXPECTED: false
-(printlnobj (< 7 8) false)
+(println (< 7 8))
 ;; EXPECTED: true
 
-(printlnobj (<= 8 8) false)
+(println (<= 8 8))
 ;; EXPECTED: true
-(printlnobj (<= 7 8) false)
+(println (<= 7 8))
 ;; EXPECTED: true

@@ -1,16 +1,16 @@
 ;; Testing evaluation of arithmetic operations
 
-(printlnobj (+ 1 2) false)
+(println (+ 1 2))
 ;; EXPECTED: 3
 
-(printlnobj (+ 5 (* 2 3)) false)
+(println (+ 5 (* 2 3)))
 ;; EXPECTED: 11
 
-(printlnobj (- (+ 5 (* 2 3)) 3) false)
+(println (- (+ 5 (* 2 3)) 3))
 ;; EXPECTED: 8
 
-(printlnobj (/ (- (+ 5 (* 2 3)) 3) 4) false)
+(println (/ (- (+ 5 (* 2 3)) 3) 4))
 ;; EXPECTED: 2
 
-(printlnobj (/ (- (+ 515 (* 222 311)) 302) 27) false)
+(println (/ (- (+ 515 (* 222 311)) 302) 27))
 ;; EXPECTED: 2565
