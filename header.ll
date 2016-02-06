@@ -17,6 +17,7 @@ declare i32 @open(i8*, i32, ...)
 declare i64 @read(i32, i8*, i64)
 declare i32 @close(i32)
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i32, i1)
+declare void @llvm.memset.p0i8.i64(i8*, i8, i64, i32, i1)
 
 declare i8* @readline(i8*)          ; Link with -lreadline
 
@@ -211,8 +212,7 @@ define private %mal_obj @mal_empty_bytearray_obj(%mal_obj %objtype, %mal_obj %le
   %len_bytes.i32 = trunc i64 %len_bytes.i64 to i32
   %buf_len = add i64 %len_bytes.i64, 1 ; space for terminating NULL char
   %strptr = call i8* @GC_malloc_atomic(i64 %buf_len)
-  %last_char_ptr = getelementptr i8* %strptr, i64 %len_bytes.i64
-  store i8 0, i8* %last_char_ptr
+  call void @llvm.memset.p0i8.i64(i8* %strptr, i8 0, i64 %buf_len, i32 0, i1 0)
   %strobj = call %mal_obj @mal_make_bytearray_obj(i32 %objtype.i32, i32 %len_bytes.i32, i8* %strptr)
   ret %mal_obj %strobj
 }
