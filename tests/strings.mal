@@ -2,11 +2,33 @@
 (_set_bytearray_range s 0 4 "ABCD")
 (_set_bytearray_range s 4 3 "efg")
 (_set_bytearray_range s 7 3 "HIJ")
-(printlnobj s true)
+(prn s)
 ;; EXPECTED: "ABCDefgHIJ"
 
-(printlnobj (_integer_to_string 98765) true)
+(prn (_integer_to_string 98765))
 ;; EXPECTED: "98765"
+(prn (_get_len (_integer_to_string 24680)))
+;; EXPECTED: 5
+(println 13579)
+;; EXPECTED: 13579
 
-(printlnobj (_get_len (_integer_to_string 12345)) true)
-;; EXPECTED: 6
+(println 'mysymbol)
+;; EXPECTED: mysymbol
+(println :mykeyword)
+;; EXPECTED: :mykeyword
+(println "my string")
+;; EXPECTED: my string
+(prn "my string")
+;; EXPECTED: "my string"
+
+(println '(123 456 789))
+;; EXPECTED: (123 456 789)
+(println [123 456 789])
+;; EXPECTED: [123 456 789]
+(println {:a 123 :b 456 :c 789})
+;; EXPECTED: {:a 123 :b 456 :c 789}
+
+(prn (atom 1234))
+;; EXPECTED: (atom 1234)
+(prn (atom "abc"))
+;; EXPECTED: (atom "abc")

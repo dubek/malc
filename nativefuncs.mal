@@ -27,8 +27,10 @@
 
 (defnativefn _empty_bytearray_obj mal_empty_bytearray_obj [objtype len_bytes])
 (defnativefn _set_bytearray_range mal_set_bytearray_range [dstobj offset len srcobj])
+(defnativefn _set_bytearray_char  mal_set_bytearray_char  [dstobj offset ascii_value])
 (defnativefn _integer_to_string   mal_integer_to_string   [intobj])
 
+(defnativefn _raw_obj_to_integer  mal_raw_obj_to_integer [obj])
 (defnativefn _printchar      mal_printchar [obj])
 (defnativefn _printnumber    mal_printnumber [obj])
 (defnativefn _printraw       mal_printraw [obj])
@@ -270,6 +272,97 @@
 (defnativefn nativefn-name nativefn_name [fn]
   (_get_elementarray_item fn 1))
 
+
+;;
+;; pr_str / str
+;;
+(defnativefn _concat_strings_helper _concat_strings_helper [seq index buffer offset]
+  (if (>= index (count seq))
+    buffer
+    (do
+      (_set_bytearray_range buffer offset (_get_len (nth seq index)) (nth seq index))
+      (_concat_strings_helper seq (+ 1 index) buffer (+ offset (_get_len (nth seq index)))))))
+
+(defnativefn _concat_strings_calc_result_size _concat_strings_calc_result_size [seq index size]
+  (if (>= index (count seq))
+    size
+    (_concat_strings_calc_result_size seq (+ 1 index) (+ size (_get_len (nth seq index))))))
+
+(defnativefn _concat_strings _concat_strings [seq]
+  (_concat_strings_helper seq 0 (_empty_bytearray_obj 18 (_concat_strings_calc_result_size seq 0 0)) 0))
+
+(defnativefn _join_strings_helper _join_strings_helper [delim seq index result]
+  (if (>= index (count seq))
+    result
+    (do
+      (if (> index 0)
+        (_set_elementarray_item result (- (* 2 index) 1) delim))
+      (_set_elementarray_item result (* 2 index) (nth seq index))
+      (_join_strings_helper delim seq (+ 1 index) result))))
+
+(defnativefn _join_strings _join_strings [delim seq]
+  (if (empty? seq)
+    ""
+    (_concat_strings
+      (_join_strings_helper delim seq 0 (make-list (- (* 2 (count seq)) 1))))))
+
+(defnativefn _symbol_to_string _symbol_to_string [sym]
+  (_set_bytearray_range (_empty_bytearray_obj 18 (_get_len sym)) 0 (_get_len sym) sym))
+
+(defnativefn _keyword_to_string keyword_to_string [keyw]
+  (_set_bytearray_range (_empty_bytearray_obj 18 (_get_len keyw)) 0 (_get_len keyw) keyw))
+
+(defnativefn _readable_string _readable_string [s]
+  ; TODO properly escape quotes, backslashes, newlines
+  (_set_bytearray_char
+    (_set_bytearray_range
+      (_set_bytearray_char (_empty_bytearray_obj 18 (+ 2 (_get_len s))) 0 34)
+      1 (_get_len s) s)
+    (+ (_get_len s) 1) 34))
+
+; Forward declaration
+(defnativefn _pr_str_one _pr_str_one [obj readable])
+
+(defnativefn _map_seq_pr_str _map_seq_pr_str [result index seq readable]
+  (if (>= index (count seq))
+    result
+    (do
+      (_set_elementarray_item result index (_pr_str_one (nth seq index) readable))
+      (_map_seq_pr_str result (+ 1 index) seq readable))))
+
+(defnativefn _pr_str_sequence _pr_str_sequence [readable start delim end seq]
+  (_concat_strings [start
+                    (_join_strings delim (_map_seq_pr_str (make-list (count seq)) 0 seq readable))
+                    end]))
+
+(defnativefn _pr_str_one _pr_str_one [obj readable]
+  (cond
+    (nil? obj)     "nil"
+    (false? obj)   "false"
+    (true? obj)    "true"
+    (integer? obj) (_integer_to_string obj)
+    (symbol? obj)  (_symbol_to_string obj)
+    (keyword? obj) (_keyword_to_string obj)
+    (string? obj)  (if readable (_readable_string obj) obj)
+    (list? obj)    (_pr_str_sequence readable "(" " " ")" obj)
+    (vector? obj)  (_pr_str_sequence readable "[" " " "]" obj)
+    (map? obj)     (_pr_str_sequence readable "{" " " "}" obj)
+    (atom? obj)    (_concat_strings ["(atom " (_pr_str_one (deref obj) true) ")"])
+    (function? obj)
+      (_concat_strings ["#<function args="
+                        (_pr_str_one (fn-args-names obj) readable)
+                        ">"])
+    (native-function? obj)
+      (_concat_strings ["#<native-function "
+                        (nativefn-name obj)
+                        " args="
+                        (_pr_str_one (fn-args-names obj) readable)
+                        ">"])
+    :else
+      (_concat_strings ["#<DONT-KNOW-HOW-TO-PRINT:raw="
+                        (_integer_to_string (_raw_obj_to_integer obj))
+                        ">"])))
+
 (defnativefn printelements printelements [obj readable index]
   (if (>= index (_get_len obj))
     nil
@@ -324,6 +417,11 @@
         (_printbytearray "#<DONT-KNOW-HOW-TO-PRINT:raw=")
         (_printraw obj)
         (_printbytearray ">"))))
+
+(defnativefn _printstring_newline _printstring_newline [str]
+  (do
+    (_printbytearray str)
+    (_printchar 10)))
 
 (defnativefn _printnewline _printnewline []
   (_printchar 10))

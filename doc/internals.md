@@ -47,8 +47,9 @@ The `data` field can point into either a bytearray (`char*`) or an elementarray
 
 Mal types *symbol*, *string* and *keyword* are held internally as bytearray
 objects.  For these objects, the `len` field in the object header holds the
-length of the string pointed by `data` in bytes (including a terminating null
-char).  `data` of course points to the byte array itself.
+length of the string pointed by `data` in bytes (not including a terminating
+null char).  `data` of course points to the byte array itself, which is of size
+`len + 1` bytes, the last byte is always `\x00`.
 
 The type field indicates the Mal type:
 

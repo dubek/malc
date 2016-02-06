@@ -98,9 +98,9 @@
 
 (def! compile-const-bytearray
   (fn* [result type-num body]
-    (let* [str-len (inc (string/length body))
+    (let* [str-len (string/length body)
            str-global (add-string body)]
-      (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " str-len ", i8* getelementptr([" str-len " x i8]* " str-global ", i32 0, i32 0))"))))
+      (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " str-len ", i8* getelementptr([" (inc str-len) " x i8]* " str-global ", i32 0, i32 0))"))))
 
 (def! native-func?
   (fn* [funcname]

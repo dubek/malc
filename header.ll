@@ -190,6 +190,7 @@ define private %mal_obj_header_t* @alloc_obj_header() {
   ret %mal_obj_header_t* %2
 }
 
+; len_bytes doesn't include the extra NULL char
 define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8* %bytes) {
   %1 = call %mal_obj_header_t* @alloc_obj_header()
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
@@ -202,14 +203,17 @@ define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8
   ret %mal_obj %new_obj
 }
 
+; len_bytes doesn't include the extra NULL char
 define private %mal_obj @mal_empty_bytearray_obj(%mal_obj %objtype, %mal_obj %len_bytes) {
   %objtype.i64 = call i64 @mal_integer_to_raw(%mal_obj %objtype)
   %objtype.i32 = trunc i64 %objtype.i64 to i32
   %len_bytes.i64 = call i64 @mal_integer_to_raw(%mal_obj %len_bytes)
+  %len_bytes.i32 = trunc i64 %len_bytes.i64 to i32
   %buf_len = add i64 %len_bytes.i64, 1 ; space for terminating NULL char
   %strptr = call i8* @GC_malloc_atomic(i64 %buf_len)
-  %buf_len.i32 = trunc i64 %buf_len to i32
-  %strobj = call %mal_obj @mal_make_bytearray_obj(i32 %objtype.i32, i32 %buf_len.i32, i8* %strptr)
+  %last_char_ptr = getelementptr i8* %strptr, i64 %len_bytes.i64
+  store i8 0, i8* %last_char_ptr
+  %strobj = call %mal_obj @mal_make_bytearray_obj(i32 %objtype.i32, i32 %len_bytes.i32, i8* %strptr)
   ret %mal_obj %strobj
 }
 
@@ -228,6 +232,24 @@ define private %mal_obj @mal_set_bytearray_range(%mal_obj %dstobj, %mal_obj %off
   ret %mal_obj %dstobj
 }
 
+define private %mal_obj @mal_set_bytearray_char(%mal_obj %dstobj, %mal_obj %offset, %mal_obj %ascii_value) {
+  %dst_hdr_ptr = inttoptr %mal_obj %dstobj to %mal_obj_header_t*
+  %dst_buf_ptr = getelementptr %mal_obj_header_t* %dst_hdr_ptr, i32 0, i32 2
+  %dst_buf = load i8** %dst_buf_ptr
+  %offset.i64 = call i64 @mal_integer_to_raw(%mal_obj %offset)
+  %dst_buf_offset_ptr = getelementptr i8* %dst_buf, i64 %offset.i64
+  %ascii_value.i64 = call i64 @mal_integer_to_raw(%mal_obj %ascii_value)
+  %ascii_byte = trunc i64 %ascii_value.i64 to i8
+  store i8 %ascii_byte, i8* %dst_buf_offset_ptr
+  ret %mal_obj %dstobj
+}
+
+define private %mal_obj @mal_raw_obj_to_integer(%mal_obj %obj) {
+  %1 = bitcast %mal_obj %obj to i64
+  %2 = call %mal_obj @make_integer(i64 %1)
+  ret %mal_obj %2
+}
+
 @snprintf_format_ld = private unnamed_addr constant [4 x i8] c"%ld\00"
 define private %mal_obj @mal_integer_to_string(%mal_obj %intobj) {
   %num = call i64 @mal_integer_to_raw(%mal_obj %intobj)
@@ -238,7 +260,7 @@ define private %mal_obj @mal_integer_to_string(%mal_obj %intobj) {
   %len_bytes.i64 = sext i32 %len_bytes to i64
   %bufcopy = call i8* @GC_malloc_atomic(i64 %len_bytes.i64)
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %bufcopy, i8* %buf, i32 %len_bytes, i32 0, i1 0)
-  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes, i8* %bufcopy)
+  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes_without_nullchar, i8* %bufcopy)
   ret %mal_obj %resstr
 }
 
@@ -473,7 +495,7 @@ GotString:
   %len_bytes.i64 = sext i32 %len_bytes to i64
   %linecopy = call i8* @GC_malloc_atomic(i64 %len_bytes.i64)
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %linecopy, i8* %line, i32 %len_bytes, i32 0, i1 0)
-  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes, i8* %linecopy)
+  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %len_bytes_without_nullchar, i8* %linecopy)
   ret %mal_obj %resstr
 }
 
@@ -487,6 +509,7 @@ define private %mal_obj @mal_slurp(%mal_obj %filename) {
   call i32 @stat(i8* %filenamestr, %struct.stat* %st)
   %sizeptr = getelementptr inbounds %struct.stat* %st, i32 0, i32 8
   %sizebytes = load i64* %sizeptr, align 8
+  %sizebytes_i32 = trunc i64 %sizebytes to i32
   %sizebytes_with_nullchar = add i64 %sizebytes, 1
   %bufsize_i32 = trunc i64 %sizebytes_with_nullchar to i32
   ; Allocate buffer for file content
@@ -496,7 +519,7 @@ define private %mal_obj @mal_slurp(%mal_obj %filename) {
   call i64 @read(i32 %fd, i8* %buf, i64 %sizebytes)
   call i32 @close(i32 %fd)
   ; Build a Mal string object with the file's content
-  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %bufsize_i32, i8* %buf)
+  %resstr = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %sizebytes_i32, i8* %buf)
   ret %mal_obj %resstr
 }
 
