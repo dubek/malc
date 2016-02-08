@@ -1,5 +1,11 @@
 sudo: false
 language: c
+addons:
+  apt:
+    packages:
+      - libgc-dev
+      - libreadline6
+
 script:
   - ./runtests.sh
   - ./runperf.sh
