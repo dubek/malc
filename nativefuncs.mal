@@ -32,8 +32,6 @@
 
 (defnativefn _raw_obj_to_integer  mal_raw_obj_to_integer [obj])
 (defnativefn _printchar      mal_printchar [obj])
-(defnativefn _printnumber    mal_printnumber [obj])
-(defnativefn _printraw       mal_printraw [obj])
 (defnativefn _printbytearray mal_printbytearray [obj])
 
 (defnativefn native-func-apply-list mal_native_func_apply_list [fn argslist])
@@ -49,16 +47,20 @@
 ;;
 ;; Forward declaration
 ;;
-(defnativefn printobj printobj [obj readable])
-(defnativefn printlnobj printlnobj [obj readable])
+(defnativefn _pr_str_one _pr_str_one [obj readable])
 (defnativefn deref deref [atm])
 
 ;;
 ;; Runtime error
 ;;
+(defnativefn _printstring_newline _printstring_newline [str]
+  (do
+    (_printbytearray str)
+    (_printchar 10)))
+
 (defnativefn runtime-error runtime_error [msg]
   (do
-    (printlnobj msg false)
+    (_printstring_newline (_pr_str_one msg false))
     (os-exit 1)))
 
 (defnativefn make-list make_list [len] (_make_elementarray_obj 33 len))
@@ -320,9 +322,6 @@
       1 (_get_len s) s)
     (+ (_get_len s) 1) 34))
 
-; Forward declaration
-(defnativefn _pr_str_one _pr_str_one [obj readable])
-
 (defnativefn _map_seq_pr_str _map_seq_pr_str [result index seq readable]
   (if (>= index (count seq))
     result
@@ -362,71 +361,3 @@
       (_concat_strings ["#<DONT-KNOW-HOW-TO-PRINT:raw="
                         (_integer_to_string (_raw_obj_to_integer obj))
                         ">"])))
-
-(defnativefn printelements printelements [obj readable index]
-  (if (>= index (_get_len obj))
-    nil
-    (do
-      (if (> index 0) (printobj " " false))
-      (printobj (nth obj index) readable)
-      (printelements obj readable (+ 1 index)))))
-
-(defnativefn printsequence printsequence [obj readable startchar endchar]
-  (do
-    (_printbytearray startchar)
-    (printelements obj readable 0)
-    (_printbytearray endchar)))
-
-(defnativefn printobj printobj [obj readable]
-  (cond
-    (nil? obj) (_printbytearray "nil")
-    (false? obj) (_printbytearray "false")
-    (true? obj) (_printbytearray "true")
-    (integer? obj) (_printnumber obj)
-    (symbol? obj) (_printbytearray obj)
-    (keyword? obj) (_printbytearray obj)
-    (string? obj)
-      (if readable
-        (do
-          (_printchar 34) ; quote
-          (_printbytearray obj)
-          (_printchar 34)) ; quote
-        (_printbytearray obj))
-    (list? obj)   (printsequence obj readable "(" ")")
-    (vector? obj) (printsequence obj readable "[" "]")
-    (map? obj)    (printsequence obj readable "{" "}")
-    (atom? obj)
-      (do
-        (_printbytearray "(atom ")
-        (printobj (deref obj) readable)
-        (_printbytearray ")"))
-    (function? obj)
-      (do
-        (_printbytearray "#<function args=")
-        (printobj (fn-args-names obj) readable)
-        (_printbytearray ">"))
-    (native-function? obj)
-      (do
-        (_printbytearray "#<native-function ")
-        (_printbytearray (nativefn-name obj))
-        (_printbytearray " args=")
-        (printobj (fn-args-names obj) readable)
-        (_printbytearray ">"))
-    :else
-      (do
-        (_printbytearray "#<DONT-KNOW-HOW-TO-PRINT:raw=")
-        (_printraw obj)
-        (_printbytearray ">"))))
-
-(defnativefn _printstring_newline _printstring_newline [str]
-  (do
-    (_printbytearray str)
-    (_printchar 10)))
-
-(defnativefn _printnewline _printnewline []
-  (_printchar 10))
-
-(defnativefn printlnobj printlnobj [obj readable]
-  (do
-    (printobj obj readable)
-    (_printnewline)))

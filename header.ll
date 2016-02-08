@@ -523,22 +523,6 @@ define private %mal_obj @mal_slurp(%mal_obj %filename) {
   ret %mal_obj %resstr
 }
 
-@printf_format_lld = private unnamed_addr constant [5 x i8] c"%lld\00"
-
-define private %mal_obj @mal_printnumber(%mal_obj %obj) {
-  %1 = call i64 @mal_integer_to_raw(%mal_obj %obj)
-  %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_format_lld, i32 0, i32 0), i64 %1)
-  %3 = call %mal_obj @make_nil()
-  ret %mal_obj %3
-}
-
-define private %mal_obj @mal_printraw(%mal_obj %obj) {
-  %1 = bitcast %mal_obj %obj to i64
-  %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([5 x i8]* @printf_format_lld, i32 0, i32 0), i64 %1)
-  %3 = call %mal_obj @make_nil()
-  ret %mal_obj %3
-}
-
 @printf_format_s = private unnamed_addr constant [3 x i8] c"%s\00"
 
 define private %mal_obj @mal_printbytearray(%mal_obj %obj) {
