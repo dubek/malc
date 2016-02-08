@@ -6,7 +6,7 @@ test_one() {
   rm -rf tests/tmp
   mkdir -p tests/tmp
   exe=tests/tmp/$(basename $testfile .mal)
-  ./malc $testfile $exe > tests/tmp/malc.log
+  ./malc -l $testfile $exe > tests/tmp/malc.log
   if [[ $? != 0 ]] ; then
     echo "ERROR compiling $testfile"
     exit 1

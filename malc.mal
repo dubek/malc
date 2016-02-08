@@ -1,4 +1,4 @@
-(load-file "utils.mal")
+(def! *malc-path* (atom "."))
 
 (def! *current-reg* (atom 0))
 (def! new-reg
@@ -492,24 +492,35 @@
   (fn* []
     (map emit @*functions-definitions-list*)))
 
+(def! malc-file
+  (fn* [filename]
+    (str @*malc-path* "/" filename)))
+
 (def! compile-program-string
   (fn* [s]
-    (let* [nativefuncs-ast (read-string (str "(do " (slurp "nativefuncs.mal") ")"))
-           core-impl-ast (read-string (str "(do " (slurp "core-impl.mal") ")"))
+    (let* [nativefuncs-ast (read-string (str "(do " (slurp (malc-file "nativefuncs.mal")) ")"))
+           core-impl-ast (read-string (str "(do " (slurp (malc-file "core-impl.mal")) ")"))
            user-prog-ast (read-string (str "(do " s ")"))
            whole-ast (list 'do core-impl-ast user-prog-ast)]
       (do
-        (emit (slurp "header.ll"))
+        (emit (slurp (malc-file "header.ll")))
         (emit (compile nil nativefuncs-ast 'native-func))
         (emit (define-mal-func "@mal_prog_main" whole-ast))
         (emit-functions-definitions)
         (emit-strings-list)
-        (emit (slurp "footer.ll"))))))
+        (emit (slurp (malc-file "footer.ll")))))))
 
 (def! compile-program-file
   (fn* [filename]
     (compile-program-string (slurp filename))))
 
-(if (empty? *ARGV*)
-  (println "Usage: malc sourcefile.mal")
-  (compile-program-file (first *ARGV*)))
+(def! -main
+  (fn* [malc-path source-filename]
+    (do
+      (reset! *malc-path* malc-path)
+      (load-file (malc-file "utils.mal"))
+      (compile-program-file source-filename))))
+
+(if (< (count *ARGV*) 2)
+  (println "Usage: malc path-to-malc sourcefile.mal")
+  (apply -main *ARGV*))

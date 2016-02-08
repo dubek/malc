@@ -2,20 +2,28 @@
 set -e
 
 if [ -z "$1" ] ; then
-  echo "Usage: $0 sourcefile.mal [outputexecutable]"
+  echo "Usage: $0 [-l] sourcefile.mal [outputexecutable]"
   exit 1
 fi
 
 bindir=$(dirname $0)
-srcfile=$(readlink -f $1)
+leave_llvm=no
+if [ "$1" = "-l" ] ; then
+  leave_llvm=yes
+  shift
+fi
+srcfile=$1
 if [ -n "$2" ] ; then
   out="$2"
 else
   out="$(dirname $srcfile)/$(basename $srcfile .mal)"
 fi
 
-cd $bindir
-mal-interpreter/mal malc.mal $srcfile > $out.ll
+$bindir/mal-interpreter/mal $bindir/malc.mal $bindir $srcfile > $out.ll
 opt -S -O3 $out.ll -o $out.opt.ll
 llc -filetype=obj $out.opt.ll -o $out.o
 gcc $out.o -lgc -lreadline -o $out
+if [ "$leave_llvm" = no ] ; then
+  rm -f $out.ll $out.opt.ll
+fi
+rm -f $out.o
