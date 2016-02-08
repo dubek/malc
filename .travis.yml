@@ -1,0 +1,5 @@
+sudo: false
+language: c
+script:
+  - ./runtests.sh
+  - ./runperf.sh
