@@ -98,6 +98,11 @@ The following functions were added:
 * `(gc-get-heap-size)` - Boehm GC's `GC_get_heap_size()`
 * `(gc-get-total-bytes)` - Boehm GC's `GC_get_total_bytes()`
 
+The following variables were added:
+
+* `*ARGV0*` - string which holds the value of argv[0] from the executable
+  `main()` entry function.
+
 
 ## What's missing?
 

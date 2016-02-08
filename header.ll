@@ -34,6 +34,9 @@ declare i64 @GC_get_total_bytes()
 ; i8* - points to data
 %mal_obj_header_t = type { i32, i32, i8* }
 
+@global_argv = global i8** null
+@global_argc = global i32 0
+
 define private %mal_obj @identity(%mal_obj %obj) {
   ret %mal_obj %obj
 }
@@ -540,6 +543,29 @@ define private %mal_obj @mal_printchar(%mal_obj %obj) {
   %3 = call i32 @putchar(i32 %2)
   %4 = call %mal_obj @make_nil()
   ret %mal_obj %4
+}
+
+define private void @save_argc_argv(i32 %argc, i8** %argv) {
+  store i32 %argc, i32* @global_argc
+  store i8** %argv, i8*** @global_argv
+  ret void
+}
+
+define private %mal_obj @mal_c_argc() {
+  %argc.i32 = load i32* @global_argc
+  %argc.i64 = sext i32 %argc.i32 to i64
+  %argcobj = call %mal_obj @make_integer(i64 %argc.i64)
+  ret %mal_obj %argcobj
+}
+
+define private %mal_obj @mal_c_argv_str(%mal_obj %argindex) {
+  %argindex.i64 = call i64 @mal_integer_to_raw(%mal_obj %argindex)
+  %argv = load i8*** @global_argv
+  %argviptr = getelementptr inbounds i8** %argv, i64 %argindex.i64
+  %argvistr = load i8** %argviptr
+  %argvilen = call i32 @strlen(i8* %argvistr)
+  %argviobj = call %mal_obj @mal_make_bytearray_obj(i32 18, i32 %argvilen, i8* %argvistr)
+  ret %mal_obj %argviobj
 }
 
 ; End of malc header.ll

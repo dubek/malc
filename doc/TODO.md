@@ -10,7 +10,6 @@ Functions missing from the Mal core:
 
 Fetaures missing from the runtime:
 
-- `*ARGV*`
 - TCO
 - exceptions
 

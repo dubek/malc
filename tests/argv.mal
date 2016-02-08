@@ -1,0 +1,9 @@
+(println (string? *ARGV0*))
+;; EXPECTED: true
+(println (> (_get_len *ARGV0*) 0))
+;; EXPECTED: true
+
+(println (list? *ARGV*))
+;; EXPECTED: true
+(println (count *ARGV*))
+;; EXPECTED: 0

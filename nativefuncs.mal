@@ -43,6 +43,8 @@
 (defnativefn gc-get-total-bytes mal_gc_get_total_bytes [])
 (defnativefn readline mal_readline [prompt])
 (defnativefn slurp mal_slurp [filename])
+(defnativefn c-argc mal_c_argc [])
+(defnativefn c-argv-str mal_c_argv_str [argindex])
 
 ;;
 ;; Forward declaration
@@ -361,3 +363,18 @@
       (_concat_strings ["#<DONT-KNOW-HOW-TO-PRINT:raw="
                         (_integer_to_string (_raw_obj_to_integer obj))
                         ">"])))
+
+;;
+;; *ARGV*
+;;
+(defnativefn prepare_argv_list prepare_argv_list [index argc result]
+  (if (>= index argc)
+    result
+    (do
+      (_set_elementarray_item result (- index 1) (c-argv-str index))
+      (prepare_argv_list (+ 1 index) argc result))))
+
+(defnativefn mal_init_argv mal_init_argv [env]
+  (do
+    (env-set env '*ARGV0* (c-argv-str 0))
+    (env-set env '*ARGV* (prepare_argv_list 1 (c-argc) (make-list (- (c-argc) 1))))))
