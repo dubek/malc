@@ -61,6 +61,22 @@ To run a specific test file:
     ./runtests.sh tests/integer_compare.mal
 
 
+## Running performance tests
+
+The Mal performance tests are copied over and can be run with:
+
+    ./runperf.sh
+
+Please note the caveat from [Mal's own
+README](https://github.com/kanaka/mal#performance-tests):
+
+> Warning: These performance tests are neither statistically valid nor
+> comprehensive; runtime performance is a not a primary goal of mal. If you
+> draw any serious conclusions from these performance tests, then please
+> contact me about some amazing oceanfront property in Kansas that I'm willing
+> to sell you for cheap.
+
+
 ## Implementation details
 
 See [internals documentation](doc/internals.md).
