@@ -1,3 +1,6 @@
+(prn *host-language*)
+;; EXPECTED: "malc"
+
 (println (string? *ARGV0*))
 ;; EXPECTED: true
 (println (> (_get_len *ARGV0*) 0))

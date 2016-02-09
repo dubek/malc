@@ -374,7 +374,8 @@
       (_set_elementarray_item result (- index 1) (c-argv-str index))
       (prepare_argv_list (+ 1 index) argc result))))
 
-(defnativefn mal_init_argv mal_init_argv [env]
+(defnativefn mal_init_globals mal_init_globals [env]
   (do
+    (env-set env '*host-language* "malc")
     (env-set env '*ARGV0* (c-argv-str 0))
     (env-set env '*ARGV* (prepare_argv_list 1 (c-argc) (make-list (- (c-argc) 1))))))
