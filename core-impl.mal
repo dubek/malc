@@ -42,5 +42,5 @@
 
 (def! pr-str  (fn* [& args] (_pr_str_sequence true "" " " "" args)))
 (def! str     (fn* [& args] (_pr_str_sequence false "" "" "" args)))
-(def! prn     (fn* [& args] (_printstring_newline (_pr_str_sequence true "" " " "" args))))
-(def! println (fn* [& args] (_printstring_newline (_pr_str_sequence false "" " " "" args))))
+(def! prn     (fn* [& args] (_printbytearray (_pr_str_sequence true "" " " "" args))))
+(def! println (fn* [& args] (_printbytearray (_pr_str_sequence false "" " " "" args))))

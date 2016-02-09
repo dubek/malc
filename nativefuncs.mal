@@ -31,8 +31,7 @@
 (defnativefn _integer_to_string   mal_integer_to_string   [intobj])
 
 (defnativefn _raw_obj_to_integer  mal_raw_obj_to_integer [obj])
-(defnativefn _printchar      mal_printchar [obj])
-(defnativefn _printbytearray mal_printbytearray [obj])
+(defnativefn _printbytearray      mal_printbytearray     [obj])
 
 (defnativefn native-func-apply-list mal_native_func_apply_list [fn argslist])
 (defnativefn func-apply-list mal_func_apply_list [fn argslist])
@@ -55,14 +54,9 @@
 ;;
 ;; Runtime error
 ;;
-(defnativefn _printstring_newline _printstring_newline [str]
-  (do
-    (_printbytearray str)
-    (_printchar 10)))
-
 (defnativefn runtime-error runtime_error [msg]
   (do
-    (_printstring_newline (_pr_str_one msg false))
+    (_printbytearray (_pr_str_one msg false))
     (os-exit 1)))
 
 (defnativefn make-list make_list [len] (_make_elementarray_obj 33 len))

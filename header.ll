@@ -5,8 +5,7 @@
 %struct.timespec = type { i64, i64 }
 %struct.stat = type { i64, i64, i64, i32, i32, i32, i32, i64, i64, i64, i64, %struct.timespec, %struct.timespec, %struct.timespec, [3 x i64] }
 
-declare i32 @putchar(i32)
-declare i32 @printf(i8* readonly, ...)
+declare i32 @puts(i8*)
 declare i32 @snprintf(i8*, i64, i8* readonly, ...)
 declare i32 @exit(i32)
 declare i32 @memcmp(i8*, i8*, i32)
@@ -526,23 +525,13 @@ define private %mal_obj @mal_slurp(%mal_obj %filename) {
   ret %mal_obj %resstr
 }
 
-@printf_format_s = private unnamed_addr constant [3 x i8] c"%s\00"
-
 define private %mal_obj @mal_printbytearray(%mal_obj %obj) {
   %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
   %3 = load i8** %2
-  %4 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([3 x i8]* @printf_format_s, i32 0, i32 0), i8* %3)
+  call i32 @puts(i8* %3)
   %5 = call %mal_obj @make_nil()
   ret %mal_obj %5
-}
-
-define private %mal_obj @mal_printchar(%mal_obj %obj) {
-  %1 = call i64 @mal_integer_to_raw(%mal_obj %obj)
-  %2 = trunc i64 %1 to i32
-  %3 = call i32 @putchar(i32 %2)
-  %4 = call %mal_obj @make_nil()
-  ret %mal_obj %4
 }
 
 define private void @save_argc_argv(i32 %argc, i8** %argv) {
