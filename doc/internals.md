@@ -3,6 +3,8 @@
 This document specifies some internal details about the implementation of malc
 (Mal compiler).
 
+## Memory
+
 ### Object structure
 
 `%mal_obj` is a 64-bit value which can hold one of the following:
@@ -115,3 +117,24 @@ For NativeFunc objects, `type` is 67 and `len` is 3. The `data` elements are:
   - 1 arguments: `%mal_obj(%mal_obj)`
   - 2 arguments: `%mal_obj(%mal_obj,%mal_obj)`
   - 3 arguments: `%mal_obj(%mal_obj,%mal_obj,%mal_obj)`
+
+
+## Compilation stages
+
+### Header
+
+### Native functions
+
+### Core
+
+### User program
+
+### Footer
+
+
+## Execution
+
+### TCO
+
+The LLVM optimizer recognizes recursive tail calls and optimizes them to jumps;
+therefore malc performs no special compilation to produce iterative code.

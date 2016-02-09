@@ -1,0 +1,12 @@
+;; Testing recursive tail-call function
+(def! sum2 (fn* (n acc) (if (= n 0) acc (sum2 (- n 1) (+ n acc)))))
+(println (sum2 10 0))
+;; EXPECTED: 55
+(println (sum2 10000000 0))
+;; EXPECTED: 50000005000000
+
+;; Test mutually recursive tail-call functions
+(def! foo (fn* (n) (if (= n 0) 0 (bar (- n 1)))))
+(def! bar (fn* (n) (if (= n 0) 0 (foo (- n 1)))))
+(println (foo 10000000))
+;; EXPECTED: 0
