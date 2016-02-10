@@ -10,6 +10,7 @@ Functions missing from the Mal core:
 
 Fetaures missing from the runtime:
 
+- proper string escaping of `" \ \n`
 - exceptions
 
 Compiler features:
@@ -18,7 +19,6 @@ Compiler features:
   which is ugly)
 - better error detection during compilation (for example, calling `+` with
   non-integer arguments, or wrong number of arguments)
-- deduplicate `*strings-list*`
 - add debugging symbols (-g)
 - hide malc's internal functions (those defined in nativefuncs.mal) so they
   won't be visible from the user's Mal program (but will be visible to
