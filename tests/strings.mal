@@ -26,6 +26,12 @@
 ;; EXPECTED: third
 (println (_get_len "first\nsecond\nthird"))
 ;; EXPECTED: 18
+(println (_get_bytearray_char "first\nsecond\nthird" 0))
+;; EXPECTED: 102
+(println (_get_bytearray_char "first\nsecond\nthird" 5))
+;; EXPECTED: 10
+(prn "first\nsecond\nthird\nbacksash \\ and quotes \" the end")
+;; EXPECTED: "first\nsecond\nthird\nbacksash \\ and quotes \" the end"
 
 (println '(123 456 789))
 ;; EXPECTED: (123 456 789)

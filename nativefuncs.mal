@@ -28,6 +28,7 @@
 (defnativefn _empty_bytearray_obj mal_empty_bytearray_obj [objtype len_bytes])
 (defnativefn _set_bytearray_range mal_set_bytearray_range [dstobj offset len srcobj])
 (defnativefn _set_bytearray_char  mal_set_bytearray_char  [dstobj offset ascii_value])
+(defnativefn _get_bytearray_char  mal_get_bytearray_char  [dstobj offset])
 (defnativefn _integer_to_string   mal_integer_to_string   [intobj])
 
 (defnativefn _raw_obj_to_integer  mal_raw_obj_to_integer [obj])
@@ -310,13 +311,61 @@
 (defnativefn _keyword_to_string keyword_to_string [keyw]
   (_set_bytearray_range (_empty_bytearray_obj 18 (_get_len keyw)) 0 (_get_len keyw) keyw))
 
-(defnativefn _readable_string _readable_string [s]
-  ; TODO properly escape quotes, backslashes, newlines
-  (_set_bytearray_char
-    (_set_bytearray_range
-      (_set_bytearray_char (_empty_bytearray_obj 18 (+ 2 (_get_len s))) 0 34)
-      1 (_get_len s) s)
-    (+ (_get_len s) 1) 34))
+(defnativefn _is_special_char _is_special_char [ascii_value]
+  (cond
+    (= 10 ascii_value) true  ; newline
+    (= 34 ascii_value) true  ; quote
+    (= 92 ascii_value) true  ; backslash
+    :else              false))
+
+(defnativefn _count_special_chars _count_special_chars [s index result]
+  (if (>= index (_get_len s))
+    result
+    (if (_is_special_char (_get_bytearray_char s index))
+      (_count_special_chars s (+ 1 index) (+ 1 result))
+      (_count_special_chars s (+ 1 index) result))))
+
+(defnativefn _size_of_readable_string _size_of_readable_string [s]
+  (+ 2 (+ (_get_len s) (_count_special_chars s 0 0))))
+
+(defnativefn _escape_char _escape_char [char dst dstindex]
+  (cond
+    (= 10 char)
+      (do
+        (_set_bytearray_char dst dstindex 92)        ; backslash
+        (_set_bytearray_char dst (+ 1 dstindex) 110) ; n
+        (+ 2 dstindex))
+    (= 34 char)
+      (do
+        (_set_bytearray_char dst dstindex 92)        ; backslash
+        (_set_bytearray_char dst (+ 1 dstindex) 34)  ; quote
+        (+ 2 dstindex))
+    (= 92 char)
+      (do
+        (_set_bytearray_char dst dstindex 92)        ; backslash
+        (_set_bytearray_char dst (+ 1 dstindex) 92)  ; backslash
+        (+ 2 dstindex))
+    :else
+      (do
+        (_set_bytearray_char dst dstindex char)
+        (+ 1 dstindex))))
+
+(defnativefn _escape_string_helper _escape_string_helper [src srcindex dst dstindex]
+  (if (>= srcindex (_get_len src))
+    dst
+    (_escape_string_helper
+      src (+ 1 srcindex)
+      dst (_escape_char (_get_bytearray_char src srcindex) dst dstindex))))
+
+(defnativefn _put_surrounding_quotes _add_surrounding_quotes [s]
+  (do
+    (_set_bytearray_char s 0 34)
+    (_set_bytearray_char s (- (_get_len s) 1) 34)
+    s))
+
+(defnativefn _escape_string _escape_string [s]
+  (_put_surrounding_quotes
+    (_escape_string_helper s 0 (_empty_bytearray_obj 18 (_size_of_readable_string s)) 1)))
 
 (defnativefn _map_seq_pr_str _map_seq_pr_str [result index seq readable]
   (if (>= index (count seq))
@@ -338,7 +387,7 @@
     (integer? obj) (_integer_to_string obj)
     (symbol? obj)  (_symbol_to_string obj)
     (keyword? obj) (_keyword_to_string obj)
-    (string? obj)  (if readable (_readable_string obj) obj)
+    (string? obj)  (if readable (_escape_string obj) obj)
     (list? obj)    (_pr_str_sequence readable "(" " " ")" obj)
     (vector? obj)  (_pr_str_sequence readable "[" " " "]" obj)
     (map? obj)     (_pr_str_sequence readable "{" " " "}" obj)

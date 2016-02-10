@@ -246,6 +246,18 @@ define private %mal_obj @mal_set_bytearray_char(%mal_obj %dstobj, %mal_obj %offs
   ret %mal_obj %dstobj
 }
 
+define private %mal_obj @mal_get_bytearray_char(%mal_obj %dstobj, %mal_obj %offset) {
+  %dst_hdr_ptr = inttoptr %mal_obj %dstobj to %mal_obj_header_t*
+  %dst_buf_ptr = getelementptr %mal_obj_header_t* %dst_hdr_ptr, i32 0, i32 2
+  %dst_buf = load i8** %dst_buf_ptr
+  %offset.i64 = call i64 @mal_integer_to_raw(%mal_obj %offset)
+  %dst_buf_offset_ptr = getelementptr i8* %dst_buf, i64 %offset.i64
+  %ascii_value = load i8* %dst_buf_offset_ptr
+  %ascii_value.i64 = zext i8 %ascii_value to i64
+  %ascii_value.obj = call %mal_obj @make_integer(i64 %ascii_value.i64)
+  ret %mal_obj %ascii_value.obj
+}
+
 define private %mal_obj @mal_raw_obj_to_integer(%mal_obj %obj) {
   %1 = bitcast %mal_obj %obj to i64
   %2 = call %mal_obj @make_integer(i64 %1)
