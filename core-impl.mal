@@ -44,3 +44,5 @@
 (def! str     (fn* [& args] (_pr_str_sequence false "" "" "" args)))
 (def! prn     (fn* [& args] (_printbytearray (_pr_str_sequence true "" " " "" args))))
 (def! println (fn* [& args] (_printbytearray (_pr_str_sequence false "" " " "" args))))
+
+(def! not (fn* [a] (if a false true)))
