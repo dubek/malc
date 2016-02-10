@@ -20,6 +20,12 @@
 ;; EXPECTED: my string
 (prn "my string")
 ;; EXPECTED: "my string"
+(println "first\nsecond\nthird")
+;; EXPECTED: first
+;; EXPECTED: second
+;; EXPECTED: third
+(println (_get_len "first\nsecond\nthird"))
+;; EXPECTED: 18
 
 (println '(123 456 789))
 ;; EXPECTED: (123 456 789)

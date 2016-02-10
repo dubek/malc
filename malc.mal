@@ -25,6 +25,10 @@
   (fn* [code-str]
     (swap! *functions-definitions-list* conj code-str)))
 
+(def! escape-llvm-string
+  (fn* [s]
+    (replace-chars s {"\n" "\0a" "\"" "\\22" "\\" "\\5c"})))
+
 (def! *current-string-global* (atom 0))
 (def! *strings-list* (atom []))
 (def! *strings-map* (atom {}))
@@ -35,7 +39,8 @@
       (let* [str-num (swap! *current-string-global* inc)
              str-global (str "@str." str-num)
              len (inc (string/length str-val))
-             def-line (str str-global "= private constant [" len " x i8] c\"" str-val "\\00\"")]
+             llvm-escaped (escape-llvm-string str-val)
+             def-line (str str-global "= private constant [" len " x i8] c\"" llvm-escaped "\\00\"")]
         (do
           (swap! *strings-list* conj def-line)
           (swap! *strings-map* assoc str-val str-global)
@@ -48,9 +53,8 @@
       (swap! *native-funcs* assoc (symbol name) ['llvm-func llvm-name llvm-args]))))
 
 (def! debug-line
-  (fn* [& args]
-    (do
-      (apply line "; DEBUG" args))))
+  (fn* [message & args]
+    (line "; DEBUG" message ":" (pr-str args))))
 
 (def! append-lines
   (fn* [& args]
@@ -123,7 +127,7 @@
            argregs-with-exprs (zip argregs (rest ast))
            argregs-with-types (map (fn* [a] (str "%mal_obj " a)) argregs)]
       (append-lines
-        (debug-line "compile-apply-native-func:" result ast)
+        (debug-line "compile-apply-native-func" result ast)
         (append-lines-seq
           (map (fn* [re] (compile (first re) (nth re 1) env-type)) argregs-with-exprs))
           (line result "= call %mal_obj" (str "@" llvm-func-name) "(" (string/join ", " argregs-with-types) ")")))))
@@ -138,7 +142,7 @@
            casted-funcptr-reg (new-reg)
            callenv-reg (new-reg)]
       (append-lines
-        (debug-line "compile-apply-mal-func:" result ast)
+        (debug-line "compile-apply-mal-func" result ast)
         (compile funcobj-reg (first ast) env-type)
         (line-assign funcenv-reg "call %mal_obj @fn_env(%mal_obj " funcobj-reg ")")
         (line-assign binds-reg "call %mal_obj @fn_args_names(%mal_obj " funcobj-reg ")")
@@ -152,7 +156,7 @@
   (fn* [result ast env-type]
     (let* [funcname (first ast)]
       (append-lines
-        (debug-line "compile-apply:" result ast)
+        (debug-line "compile-apply" result ast)
         (cond
           (= env-type 'native-func)
             (cond
@@ -264,7 +268,7 @@
 (def! compile-load-file
   (fn* [result filename env-type]
     (append-lines
-      (debug-line "load-file:" filename)
+      (debug-line "load-file" filename)
       (compile result (read-string (str "(do " (slurp filename) ")")) env-type))))
 
 (def! compile-list
@@ -436,7 +440,7 @@
 (def! compile-literal
   (fn* [result ast env-type]
     (append-lines
-      (debug-line "compile-literal:" result ast)
+      (debug-line "compile-literal" result ast)
       (cond
         (nil? ast) (compile-nil result)
         (true? ast) (compile-true result)
@@ -468,8 +472,8 @@
   (fn* [result ast env-type]
     (let* [exp-ast (expand-macros ast)]
       (append-lines
-        (debug-line "compile:" ast)
-        (debug-line "exp-ast:" exp-ast)
+        (debug-line "compile" ast)
+        (debug-line "exp-ast" exp-ast)
         (cond
           (symbol? exp-ast) (compile-variable result exp-ast env-type)
           (literal? exp-ast) (compile-literal result exp-ast env-type)
