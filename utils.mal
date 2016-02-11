@@ -22,7 +22,8 @@
       (iter "" seq))))
 
 (def! string/length
-  (rb* "lambda { |s| s.size }"))
+  (fn* [s]
+    (count (seq (str s)))))
 
 (def! string?
   (fn* [o]
