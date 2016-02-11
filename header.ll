@@ -287,8 +287,6 @@ define private %mal_obj @mal_bytearray_equal_q(%mal_obj %a, %mal_obj %b) {
   %a_buf = load i8** %a_buf_ptr
 
   %b_hdr_ptr = inttoptr %mal_obj %b to %mal_obj_header_t*
-  %b_len_ptr = getelementptr %mal_obj_header_t* %b_hdr_ptr, i32 0, i32 1
-  %b_len = load i32* %b_len_ptr
   %b_buf_ptr = getelementptr %mal_obj_header_t* %b_hdr_ptr, i32 0, i32 2
   %b_buf = load i8** %b_buf_ptr
 
