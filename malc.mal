@@ -174,16 +174,16 @@
             (throw "Unknown env-type"))))))
 
 (def! compile-native-func
-  (fn* [name llvm-name params body]
+  (fn* [name llvm-name params & body]
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
         (add-native-func name llvm-name params)
-        (if body
+        (if (not (empty? body))
           (append-lines
             (line "")
             (line "")
             (line "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
-            (compile "%funcresult" body 'native-func)
+            (compile "%funcresult" (first body) 'native-func)
             (line "ret %mal_obj %funcresult")
             (line "} ; end of native func " llvm-name)
             (line ""))
