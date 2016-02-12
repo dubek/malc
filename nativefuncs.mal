@@ -49,6 +49,7 @@
 ;;
 ;; Forward declaration
 ;;
+(defnativefn = equal_Q [a b])
 (defnativefn _pr_str_one _pr_str_one [obj readable])
 (defnativefn deref deref [atm])
 
@@ -89,20 +90,42 @@
     (_bytearray_equal? a b)
     false))
 
+(defnativefn equal_elementarray_content? equal_elementarray_content_Q [len a b index]
+  (if (>= index len)
+    true
+    (if (= (_get_elementarray_item a index) (_get_elementarray_item b index))
+      (equal_elementarray_content? len a b (+ 1 index))
+      false)))
+
+(defnativefn sequential_equal? _sequential_equal_Q [a b]
+  (if (_integer_equal? (_get_len a) (_get_len b))
+    (equal_elementarray_content? (_get_len a) a b 0)
+    false))
+
+(defnativefn hashmap_equal? _hashmap_equal_Q [a b]
+  ; TODO implement hashmap equality
+  false)
+
 (defnativefn = equal_Q [a b]
   (cond
-    (nil? a)     (nil? b)
-    (true? a)    (true? b)
-    (false? a)   (false? b)
-    (integer? a) (if (integer? b) (_integer_equal? a b) false)
-    (symbol? a)  (if (symbol? b) (equal_bytearray_content? a b) false)
-    (string? a)  (if (string? b) (equal_bytearray_content? a b) false)
-    (keyword? a) (if (keyword? b) (equal_bytearray_content? a b) false)
-    (atom? a)    (if (atom? b) (= @a @b) false)
-    :else        false)) ; TODO vector/list/map
+    (nil? a)        (nil? b)
+    (true? a)       (true? b)
+    (false? a)      (false? b)
+    (integer? a)    (if (integer? b) (_integer_equal? a b) false)
+    (symbol? a)     (if (symbol? b) (equal_bytearray_content? a b) false)
+    (string? a)     (if (string? b) (equal_bytearray_content? a b) false)
+    (keyword? a)    (if (keyword? b) (equal_bytearray_content? a b) false)
+    (atom? a)       (if (atom? b) (= @a @b) false)
+    (sequential? a) (if (sequential? b) (sequential_equal? a b) false)
+    (map? a)        (if (map? b) (hashmap_equal? a b) false)
+    :else           false))
 
-(defnativefn count count [obj] (_get_len obj))
-(defnativefn empty? empty_Q [obj] (= 0 (count obj)))
+(defnativefn count count [obj]
+  (if (nil? obj) 0 (_get_len obj)))
+
+(defnativefn empty? empty_Q [obj]
+  (= 0 (count obj)))
+
 (defnativefn first first [seq]
   (if (empty? seq)
     nil
