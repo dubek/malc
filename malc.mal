@@ -50,7 +50,7 @@
 (def! add-native-func
   (fn* [name llvm-name llvm-args]
     (do
-      (swap! *native-funcs* assoc (symbol name) ['llvm-func llvm-name llvm-args]))))
+      (swap! *native-funcs* assoc (str name) ['llvm-func llvm-name llvm-args]))))
 
 (def! debug-line
   (fn* [message & args]
@@ -112,11 +112,11 @@
 
 (def! native-func?
   (fn* [funcname]
-    (contains? @*native-funcs* funcname)))
+    (contains? @*native-funcs* (str funcname))))
 
 (def! get-native-func
   (fn* [funcname]
-    (get @*native-funcs* funcname)))
+    (get @*native-funcs* (str funcname))))
 
 (def! compile-apply-native-func
   (fn* [result ast env-type]
