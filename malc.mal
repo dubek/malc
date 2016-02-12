@@ -123,7 +123,7 @@
     (let* [funcname (first ast)
            funcobj (get-native-func funcname)
            llvm-func-name (nth funcobj 1)
-           argregs (map new-reg (rest ast))
+           argregs (n-entries new-reg (count (rest ast)))
            argregs-with-exprs (zip argregs (rest ast))
            argregs-with-types (map (fn* [a] (str "%mal_obj " a)) argregs)]
       (append-lines
@@ -367,7 +367,7 @@
 
 (def! compile-literal-elementarray
   (fn* [type-num result ast env-type]
-    (let* [regs (map new-reg ast)
+    (let* [regs (n-entries new-reg (count ast))
            regs-and-exprs (zip regs ast)
            lines (map (fn* [re] (compile-literal (first re) (nth re 1) env-type)) regs-and-exprs)]
       (append-lines
@@ -384,7 +384,7 @@
 
 (def! compile-vector
   (fn* [result ast env-type]
-    (let* [regs (map new-reg ast)
+    (let* [regs (n-entries new-reg (count ast))
            regs-and-exprs (zip regs ast)
            lines (map (fn* [re] (compile (first re) (nth re 1) env-type)) regs-and-exprs)]
       (append-lines
@@ -392,7 +392,7 @@
         (compile-elementarray result 34 regs env-type)))))
 
 (def! map-to-list-helper
-  (fn* [hm result ks] 
+  (fn* [hm result ks]
     (if (empty? ks)
       result
       (map-to-list-helper hm (concat result [(first ks) (get hm (first ks))]) (rest ks)))))
@@ -404,7 +404,7 @@
 (def! compile-hash-map
   (fn* [result ast env-type]
     (let* [lst (map-to-list ast)
-           regs (map new-reg lst)
+           regs (n-entries new-reg (count lst))
            regs-and-exprs (zip regs lst)
            lines (map (fn* [re] (compile (first re) (nth re 1) env-type)) regs-and-exprs)]
       (append-lines
