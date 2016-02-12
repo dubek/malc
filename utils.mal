@@ -50,6 +50,15 @@
   (fn* [o]
     (= o (str o))))
 
+(def! n-entries
+  (fn* [func size]
+    (let* [helper
+           (fn* [result]
+             (if (= size (count result))
+               result
+               (helper (concat result (list (func))))))]
+      (helper (list)))))
+
 (def! map-with-index
   (fn* [func seq]
     (let* [loop-func
