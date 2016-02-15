@@ -12,8 +12,6 @@ bindir=$(readlink -f $(dirname $0))
 MAL_PREFIX=${MAL_PREFIX:-}
 MAL_IMPL=$(readlink -f ${MAL_IMPL:-$bindir/mal-interpreter/mal})
 
-rundir=$(dirname ${MAL_IMPL})
-
 leave_llvm=no
 if [ "$1" = "-l" ] ; then
   leave_llvm=yes
@@ -26,11 +24,6 @@ else
   out="$(dirname $srcfile)/$(basename $srcfile .mal)"
 fi
 
-if [ -n "$rundir" ]; then
-    cd "$rundir"
-fi
-
-cd ${rundir}
 ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $bindir $srcfile > $out.ll
 opt -S -O3 $out.ll -o $out.opt.ll
 llc -filetype=obj $out.opt.ll -o $out.o
