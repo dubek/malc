@@ -2,7 +2,7 @@
 
 test_one() {
   testfile="$1"
-  echo -n "Testing $testfile ... "
+  echo -n "Compiling $testfile ... "
   rm -rf tests/tmp
   mkdir -p tests/tmp
   exe=tests/tmp/$(basename $testfile .mal)
@@ -11,6 +11,7 @@ test_one() {
     echo "ERROR compiling $testfile"
     exit 1
   fi
+  echo -n "Running ... "
   $exe > tests/tmp/test_output
   if [[ $? != 0 ]] ; then
     echo "ERROR running $testfile: test output:"
