@@ -55,6 +55,19 @@ This will generate `myprogram.ll` (the LLVM code produced by malc),
 `myprogram.opt.ll` (LLVM code after the LLVM optimizer) and `myprogram` (the
 executable file).
 
+### Choosing the Mal interpreter
+
+By default malc uses the bundled Ruby implementation of Mal to run the
+compiler.  Use the `MAL_IMPL` (path to the Mal implementation) and `MAL_PREFIX`
+(program which runs the Mal implementation) environment variables to instruct
+malc to use another Mal interpreter.  For example:
+
+    MAL_PREFIX=python MAL_IMPL=../mal/python/stepA_mal.py ./malc myprogram.mal
+
+For compiled Mal interpreters just set `MAL_IMPL`; for example:
+
+    MAL_IMPL=../mal/ocaml/stepA_mal ./malc myprogram.mal
+
 
 ## Running tests
 
