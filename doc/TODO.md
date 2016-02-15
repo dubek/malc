@@ -10,11 +10,13 @@ Functions missing from the Mal core:
 
 Fetaures missing from the runtime:
 
-- proper string escaping of `" \ \n`
 - exceptions
 
 Compiler features:
 
+- memory structure: since elementarray and bytearray sizes are known during
+  allocation, we can allocate one continuous space for header + data (instead
+  of allocating the data array separately).
 - separate macro namespace (currently we expand macros in malc's namespace,
   which is ugly)
 - better error detection during compilation (for example, calling `+` with
