@@ -1,17 +1,12 @@
 (def! inc (fn* (a) (+ a 1)))
 
-; (seq "abcd")
-; ;=>["a" "b" "c" "d"]
-(def! seq
+(def! string/length
   (fn* [s]
-    (let* [seq-str (rb* "lambda { |x| x.split('') }")]
-      (seq-str (str s)))))
-
-(def! string/length (fn* [s] (count (seq s))))
+    (count (seq (str s)))))
 
 (def! replace-chars
   (fn* [s replace-map]
-    (let* [chars (seq s)
+    (let* [chars (seq (str s))
            replace-one-char
            (fn* [char]
               (if (contains? replace-map char)
@@ -45,10 +40,6 @@
                 (= (count xs) 1) (str res (first xs))
                 'else            (iter (str res (first xs) separator) (rest xs))))]
       (iter "" seq))))
-
-(def! string?
-  (fn* [o]
-    (= o (str o))))
 
 (def! n-entries
   (fn* [func size]

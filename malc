@@ -6,20 +6,32 @@ if [ -z "$1" ] ; then
   exit 1
 fi
 
-bindir=$(dirname $0)
+bindir=$(readlink -f $(dirname $0))
+
+# user overridable
+MAL_PREFIX=${MAL_PREFIX:-}
+MAL_IMPL=$(readlink -f ${MAL_IMPL:-$bindir/mal-interpreter/mal})
+
+rundir=$(dirname ${MAL_IMPL})
+
 leave_llvm=no
 if [ "$1" = "-l" ] ; then
   leave_llvm=yes
   shift
 fi
-srcfile=$1
+srcfile="$(readlink -f $1)"
 if [ -n "$2" ] ; then
-  out="$2"
+  out="$(readlink -f $2)"
 else
   out="$(dirname $srcfile)/$(basename $srcfile .mal)"
 fi
 
-$bindir/mal-interpreter/mal $bindir/malc.mal $bindir $srcfile > $out.ll
+if [ -n "$rundir" ]; then
+    cd "$rundir"
+fi
+
+cd ${rundir}
+${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $bindir $srcfile > $out.ll
 opt -S -O3 $out.ll -o $out.opt.ll
 llc -filetype=obj $out.opt.ll -o $out.o
 gcc $out.o -lgc -lreadline -o $out
