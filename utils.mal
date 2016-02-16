@@ -26,10 +26,35 @@
       nil
       (nth seq (- (count seq) 1)))))
 
+(def! all?
+  (fn* [pred lst]
+    (if (empty? lst)
+      true
+      (if (pred (first lst))
+        (all? pred (rest lst))
+        false))))
+
+(def! *digits* {"0" true "1" true "2" true "3" true "4" true
+                "5" true "6" true "7" true "8" true "9" true})
+
+(def! all-digits?
+  (fn* [chars]
+    (all? (fn* [c] (contains? *digits* c)) chars)))
+
 (def! number?
   (fn* [o]
-    (try* (= o (+ o 0))
-      (catch* _ false))))
+    (cond
+      (true? o)    false
+      (false? o)   false
+      (nil? o)     false
+      (string? o)  false
+      (symbol? o)  false
+      (keyword? o) false
+      (list? o)    false
+      (vector? o)  false
+      (map? o)     false
+      (atom? o)    false
+      :else        (all-digits? (seq (str o))))))
 
 (def! string/join
   (fn* [separator seq]
