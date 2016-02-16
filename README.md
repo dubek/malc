@@ -107,7 +107,7 @@ See [internals documentation](doc/internals.md).
 
 The following functions were added:
 
-* `(os_exit EXITCODE)` - exits the process with the given integer exit code.
+* `(os-exit EXITCODE)` - exits the process with the given integer exit code.
 * `(gc-get-heap-size)` - Boehm GC's `GC_get_heap_size()`
 * `(gc-get-total-bytes)` - Boehm GC's `GC_get_total_bytes()`
 

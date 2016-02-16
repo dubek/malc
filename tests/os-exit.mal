@@ -1,0 +1,7 @@
+(println "Before os-exit")
+;; EXPECTED: Before os-exit
+
+(os-exit 0)
+
+; The following line should *not* be printed
+(println "After os-exit")
