@@ -27,7 +27,7 @@
 
 (def! escape-llvm-string
   (fn* [s]
-    (replace-chars s {"\n" "\0a" "\"" "\\22" "\\" "\\5c"})))
+    (replace-chars s {"\n" "\\0a" "\"" "\\22" "\\" "\\5c"})))
 
 (def! *current-string-global* (atom 0))
 (def! *strings-list* (atom []))

@@ -37,8 +37,8 @@
 ;; EXPECTED: (123 456 789)
 (println [123 456 789])
 ;; EXPECTED: [123 456 789]
-(println {:a 123 :b 456 :c 789})
-;; EXPECTED: {:a 123 :b 456 :c 789}
+(println {:a 123})
+;; EXPECTED: {:a 123}
 
 (prn (atom 1234))
 ;; EXPECTED: (atom 1234)

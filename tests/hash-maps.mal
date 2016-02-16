@@ -40,8 +40,8 @@
 (println (vals hm))
 ;; EXPECTED: (11 22 33)
 
-(println { :a  11 :b  22 :c 33 })
-;; EXPECTED: {:a 11 :b 22 :c 33}
+(println { :a  11 })
+;; EXPECTED: {:a 11}
 
 (println {  })
 ;; EXPECTED: {}
