@@ -33,18 +33,19 @@
 (def! *strings-list* (atom []))
 (def! *strings-map* (atom {}))
 (def! add-string
-  (fn* [str-val]
-    (if (contains? @*strings-map* str-val)
-      (get @*strings-map* str-val)
-      (let* [str-num (swap! *current-string-global* inc)
-             str-global (str "@str." str-num)
-             len (inc (string/length str-val))
-             llvm-escaped (escape-llvm-string str-val)
-             def-line (str str-global "= private constant [" len " x i8] c\"" llvm-escaped "\\00\"")]
-        (do
-          (swap! *strings-list* conj def-line)
-          (swap! *strings-map* assoc str-val str-global)
-          str-global)))))
+  (fn* [val]
+    (let* [str-val (str val)]
+      (if (contains? @*strings-map* str-val)
+        (get @*strings-map* str-val)
+        (let* [str-num (swap! *current-string-global* inc)
+               str-global (str "@str." str-num)
+               len (inc (string/length str-val))
+               llvm-escaped (escape-llvm-string str-val)
+               def-line (str str-global "= private constant [" len " x i8] c\"" llvm-escaped "\\00\"")]
+          (do
+            (swap! *strings-list* conj def-line)
+            (swap! *strings-map* assoc str-val str-global)
+            str-global))))))
 
 (def! *native-funcs* (atom {}))
 (def! add-native-func
