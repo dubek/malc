@@ -17,6 +17,11 @@ if [ "$1" = "-l" ] ; then
   leave_llvm=yes
   shift
 fi
+compilemode=release
+if [ "$1" = "-g" ] ; then
+  compilemode=debug
+  shift
+fi
 srcfile="$(readlink -f $1)"
 if [ -n "$2" ] ; then
   out="$(readlink -f $2)"
@@ -24,10 +29,10 @@ else
   out="$(dirname $srcfile)/$(basename $srcfile .mal)"
 fi
 
-${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $bindir $srcfile > $out.ll
+${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $compilemode $bindir $srcfile > $out.ll
 opt -S -O3 $out.ll -o $out.opt.ll
 llc -filetype=obj $out.opt.ll -o $out.o
-gcc $out.o -lgc -lreadline -lstdc++ -o $out
+gcc -g $out.o -lgc -lreadline -lstdc++ -o $out
 if [ "$leave_llvm" = no ] ; then
   rm -f $out.ll $out.opt.ll
 fi

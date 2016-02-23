@@ -1,4 +1,5 @@
 (def! *malc-path* (atom "."))
+(def! *compile-mode* (atom "release"))
 
 (def! *current-reg* (atom 0))
 (def! new-reg
@@ -28,6 +29,10 @@
 (def! escape-llvm-string
   (fn* [s]
     (replace-chars s {"\n" "\\0a" "\"" "\\22" "\\" "\\5c"})))
+
+(def! linkage-type
+  (fn* []
+    (if (= @*compile-mode* "debug") "external" "private")))
 
 (def! *current-string-global* (atom 0))
 (def! *strings-list* (atom []))
@@ -183,7 +188,7 @@
           (append-lines
             (line "")
             (line "")
-            (line "define private %mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
+            (line "define" (linkage-type) "%mal_obj" (str "@" llvm-name) "(" (string/join ", " params-with-types) ") {")
             (compile "%funcresult" (first body) 'native-func)
             (line "ret %mal_obj %funcresult")
             (line "} ; end of native func " llvm-name)
@@ -532,7 +537,7 @@
     (append-lines
       (line "")
       (line "")
-      (line "define private %mal_obj" name "(%mal_obj %env) {")
+      (line "define" (linkage-type) "%mal_obj" name "(%mal_obj %env) {")
       (compile "%funcresult" body 'mal-env)
       (line "ret %mal_obj %funcresult")
       (line "} ; end of function" name)
@@ -569,12 +574,13 @@
     (compile-program-string (slurp filename))))
 
 (def! -main
-  (fn* [malc-path source-filename]
+  (fn* [compile-mode malc-path source-filename]
     (do
+      (reset! *compile-mode* compile-mode)
       (reset! *malc-path* malc-path)
       (load-file (malc-file "utils.mal"))
       (compile-program-file source-filename))))
 
-(if (< (count *ARGV*) 2)
-  (println "Usage: malc path-to-malc sourcefile.mal")
+(if (< (count *ARGV*) 3)
+  (println "Usage: malc <debug|release> path-to-malc sourcefile.mal")
   (apply -main *ARGV*))
