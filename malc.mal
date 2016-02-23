@@ -252,6 +252,48 @@
         (line-label after-if-label)
         (line-assign result "load %mal_obj*" result-stack-reg)))))
 
+(def! compile-try-catch
+  (fn* [result ast env-type]
+    (let* [try-exp (nth ast 1)
+           catch-clause (nth ast 2)
+           catch-exn-var-name (nth catch-clause 1)
+           catch-exp (nth catch-clause 2)
+           try-func-name (new-func-name)
+           catch-func-name (new-func-name)
+           result-stack-reg (new-stack-reg)
+           try-result (new-reg)
+           landingpad-exn-reg (new-reg)
+           catch-exn-reg (new-reg)
+           catch-exn-var-reg (new-reg)
+           catch-env-reg (new-reg)
+           catch-result (new-reg)
+           cont-label (new-label ".try_cont")
+           catch-label (new-label ".try_catch")
+           after-try-label (new-label ".try_end")]
+      (do
+        (add-function-definition (define-mal-func try-func-name try-exp))
+        (add-function-definition (define-mal-func catch-func-name catch-exp))
+        (append-lines
+          (line-assign result-stack-reg "alloca %mal_obj")
+          (line-assign try-result "invoke %mal_obj" try-func-name "(%mal_obj %env)"
+                       "to label" (str "%" cont-label)
+                       "unwind label" (str "%" catch-label))
+          (line-label cont-label)
+          (line "store %mal_obj" try-result ", %mal_obj*" result-stack-reg)
+          (line "br label" (str "%" after-try-label))
+          (line-label catch-label)
+          (line-assign landingpad-exn-reg "landingpad {i8*,i32}"
+                       "personality i8* bitcast (i32 (...)* @__gxx_personality_v0 to i8*)"
+                       "catch i8* null")
+          (line-assign catch-exn-reg "call %mal_obj @mal_get_exception_from_landing_pad({i8*,i32}" landingpad-exn-reg ")")
+          (compile-literal catch-exn-var-reg catch-exn-var-name env-type)
+          (line-assign catch-env-reg "call %mal_obj @new_singlevar_env(%mal_obj %env, %mal_obj" catch-exn-var-reg ", %mal_obj" catch-exn-reg ")")
+          (line-assign catch-result "call %mal_obj" catch-func-name "(%mal_obj " catch-env-reg ")")
+          (line "store %mal_obj" catch-result ", %mal_obj*" result-stack-reg)
+          (line "br label" (str "%" after-try-label))
+          (line-label after-try-label)
+          (line-assign result "load %mal_obj*" result-stack-reg))))))
+
 ; AST manipulation: rewrite let* as nested fn*
 ; Converts (let* [x 8 y (+ x 2)] (body ...))
 ; to ((fn* [x] ((fn* [y] (body ...)) (+ x 2))) 8)
@@ -312,6 +354,9 @@
 
         (= 'if a0)
           (compile-if result ast env-type)
+
+        (= 'try* a0)
+          (compile-try-catch result ast env-type)
 
         (= 'fn* a0)
           (compile-fn result ast env-type)

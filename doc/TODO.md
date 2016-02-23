@@ -3,14 +3,9 @@
 Functions missing from the Mal core:
 
 - conj
-- exceptions / throw / try-catch
 - meta / with-meta
 - read-string (that's a big one)
 - eval (requires JIT compiling?)
-
-Fetaures missing from the runtime:
-
-- exceptions
 
 Compiler features:
 

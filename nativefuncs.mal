@@ -43,6 +43,7 @@
 (defnativefn gc-get-total-bytes mal_gc_get_total_bytes [])
 (defnativefn readline mal_readline [prompt])
 (defnativefn slurp mal_slurp [filename])
+(defnativefn throw mal_throw [obj])
 (defnativefn c-argc mal_c_argc [])
 (defnativefn c-argv-str mal_c_argv_str [argindex])
 
@@ -234,6 +235,9 @@
 
 (defnativefn new-env new_env [outer binds exprs]
   (init-env outer (env-bind-vars (make-map 0) binds exprs 0)))
+
+(defnativefn new-singlevar-env new_singlevar_env [outer varname varvalue]
+  (init-env outer (assoc1 (make-map 0) varname varvalue)))
 
 (defnativefn new-root-env new_root_env []
   (new-env nil [] []))

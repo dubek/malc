@@ -138,3 +138,17 @@ For NativeFunc objects, `type` is 67 and `len` is 3. The `data` elements are:
 
 The LLVM optimizer recognizes recursive tail calls and optimizes them to jumps;
 therefore malc performs no special compilation to produce iterative code.
+
+### Exceptions
+
+malc uses the C++ exception handling library (`unwind` which is part of
+`libstdc++`).  The mal exception struct (`%mal_exn_t`) consists of one
+`%mal_obj` field which holds the Mal value of the thrown object (the argument
+of the `throw` function) and a standard `_Unwind_Exception` struct.
+
+A `try` clause is extracted to a function which is called with the `invoke`
+LLVM instruction.  The function might throw an exception; `throw` is
+implemented with `_Unwind_RaiseException`.  In such a case, control will
+continue at the `landingpad` (catch).  Using pointer calculation the program
+retrieves the original `%mal_obj` that was thrown which is available then to
+the catch clause (which is also extracted into a separate function).

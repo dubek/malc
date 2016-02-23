@@ -33,6 +33,14 @@ declare i64 @GC_get_total_bytes()
 ; i8* - points to data
 %mal_obj_header_t = type { i32, i32, i8* }
 
+;
+; Exception handling
+;
+%struct._Unwind_Exception = type { i64, void (i32, %struct._Unwind_Exception*)*, i64, i64 }
+declare i32 @_Unwind_RaiseException(%struct._Unwind_Exception*)
+declare i32 @__gxx_personality_v0(...)   ; Link with -lstdc++
+%mal_exn_t = type { %mal_obj, %struct._Unwind_Exception }
+
 @global_argv = global i8** null
 @global_argc = global i32 0
 
@@ -542,6 +550,29 @@ define private %mal_obj @mal_printbytearray(%mal_obj %obj) {
   call i32 @puts(i8* %3)
   %5 = call %mal_obj @make_nil()
   ret %mal_obj %5
+}
+
+define private %mal_obj @mal_throw(%mal_obj %obj) {
+  %mal_exn_temp = getelementptr %mal_exn_t* null, i64 1
+  %mal_exn_t_size = ptrtoint %mal_exn_t* %mal_exn_temp to i64
+  %exn_i8_ptr = call i8* @GC_malloc(i64 %mal_exn_t_size)
+  %exn_ptr = bitcast i8* %exn_i8_ptr to %mal_exn_t*
+  %obj_ptr = getelementptr %mal_exn_t* %exn_ptr, i32 0, i32 0
+  store %mal_obj %obj, %mal_obj* %obj_ptr
+  %exn_class_ptr = getelementptr %mal_exn_t* %exn_ptr, i32 0, i32 1, i32 0
+  store i64 4996829957792549888, i64* %exn_class_ptr    ; 4996829957792549888 = 0x45584e5f4d414c00 = "EXN_MAL\0"
+  %unwind_exception_ptr = getelementptr %mal_exn_t* %exn_ptr, i32 0, i32 1
+  %unused = call i32 @_Unwind_RaiseException(%struct._Unwind_Exception* %unwind_exception_ptr)
+  unreachable
+  ret %mal_obj 0
+}
+
+define private %mal_obj @mal_get_exception_from_landing_pad({i8*,i32} %landing_exn) {
+  %landing_exn_first = extractvalue {i8*,i32} %landing_exn, 0
+  %landing_exn_mal_obj_ptr = bitcast i8* %landing_exn_first to %mal_obj*
+  %exn_obj_ptr = getelementptr %mal_obj* %landing_exn_mal_obj_ptr, i32 -1
+  %exn_obj = load %mal_obj* %exn_obj_ptr
+  ret i64 %exn_obj
 }
 
 define private void @save_argc_argv(i32 %argc, i8** %argv) {

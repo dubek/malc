@@ -1,0 +1,45 @@
+;; Testing normal flow
+(println "Before try*")
+(try*
+  (println "In try*")
+  (catch* exn (println "In catch")))
+(println "After try*")
+;; EXPECTED: Before try*
+;; EXPECTED: In try*
+;; EXPECTED: After try*
+
+;; Testing exception throw
+(println "Before try*")
+(try*
+  (do
+    (println "Before throw")
+    (throw (list 44 33 22))
+    (println "After throw - should not be printed"))
+  (catch* exn (println "In catch, exn=" exn)))
+(println "After try*")
+;; EXPECTED: Before try*
+;; EXPECTED: Before throw
+;; EXPECTED: In catch, exn= (44 33 22)
+;; EXPECTED: After try*
+
+;; Testing deep exception throw
+(println "Before try*")
+(def! g (fn* [x] (throw (+ 1 x))))
+(def! f (fn* [x] (g (+ 1 x))))
+(try*
+  (do
+    (println "Before f")
+    (f 5)
+    (println "After f - should not be printed"))
+  (catch* e (println "In catch, e=" e)))
+(println "After try*")
+;; EXPECTED: Before try*
+;; EXPECTED: Before f
+;; EXPECTED: In catch, e= 7
+;; EXPECTED: After try*
+
+;; Testing return values
+(println (try* 123 (catch e (+ e 456))))
+;; EXPECTED: 123
+(println (try* (throw 123) (catch e (+ e 456))))
+;; EXPECTED: 579
