@@ -1,0 +1,132 @@
+; malc is responsible for loading tokenizer.mal before this file
+; (load-file "./tokenizer.mal")
+
+(def! make_reader
+  (fn* [tokens]
+    (atom {:tokens tokens :pos 0})))
+
+(def! reader_peek
+  (fn* [rdr]
+    (let* [tokens (get @rdr :tokens)
+           pos    (get @rdr :pos)]
+      (if (>= pos (count tokens))
+        nil
+        (nth tokens pos)))))
+
+(def! reader_next
+  (fn* [rdr]
+    (let* [tokens (get @rdr :tokens)
+           pos    (get @rdr :pos)]
+      (do
+        (reset! rdr {:tokens tokens :pos (+ 1 pos)})
+        (nth tokens pos)))))
+
+(def! *digits* {"0" 0 "1" 1 "2" 2 "3" 3 "4" 4 "5" 5 "6" 6 "7" 7 "8" 8 "9" 9})
+(def! digit? (fn* [c] (contains? *digits* c)))
+
+(def! string->integer-helper
+  (fn* [val chars]
+    (if (empty? chars)
+      val
+      (string->integer-helper (+ (* 10 val) (get *digits* (first chars))) (rest chars)))))
+
+(def! string->integer
+  (fn* [str]
+    (string->integer-helper 0 (seq str))))
+
+(def! read_negative_integer
+  (fn* [token-chars]
+    (- 0 (string->integer (apply str (rest token-chars))))))
+
+(def! negative_number?
+  (fn* [token-chars]
+    (if (> (count token-chars) 1)
+      (if (= "-" (first token-chars))
+        (digit? (nth token-chars 1))
+        false)
+      false)))
+
+(def! unescape_char
+  (fn* [c1]
+    (cond
+      (= "n" c1)  "\n"
+      (= "\"" c1) c1
+      (= "\\" c1) c1
+      :else       (throw "Illegal escaped char in string"))))
+
+(def! unescape_string
+  (fn* [chars res]
+    (if (empty? chars)
+      (throw "Expected '\"'")
+      (if (= '("\"") chars)
+        (apply str res)
+        (let* [c0 (first chars)]
+          (if (= "\\" c0)
+            (let* [c1 (first (rest chars))]
+              (unescape_string (rest (rest chars)) (concat res [(unescape_char c1)])))
+            (unescape_string (rest chars) (concat res [c0]))))))))
+
+(def! read_atom
+  (fn* [rdr]
+    (let* [token (reader_next rdr)
+           token-chars (seq token)
+           tc0 (first token-chars)]
+      (cond
+        (digit? tc0) (string->integer token)
+        (negative_number? token-chars) (read_negative_integer token-chars)
+        (= "-" tc0) (read_negative_integer token)
+        (= ":" tc0) (keyword (apply str (rest token-chars)))
+        (= "\"" tc0) (unescape_string (rest token-chars) [])
+        (= "true" token) true
+        (= "false" token) false
+        (= "nil" token) nil
+        :else (symbol token)))))
+
+(def! read_sequence_entries
+  (fn* [rdr end res]
+    (let* [token (reader_peek rdr)]
+      (if (nil? token)
+        (throw (str "Expected '" end "'"))
+        (if (= end token)
+          res
+          (read_sequence_entries rdr end (concat res [(read_form rdr)])))))))
+
+(def! read_list
+  (fn* [rdr start end]
+    (let* [token (reader_next rdr)]
+      (if (= start token)
+        (let* [lst (read_sequence_entries rdr end '())]
+          (do
+            (reader_next rdr) ; skip the closing paren
+            lst))
+        (throw (str "Expected '" start "'"))))))
+
+(def! read_macro
+  (fn* [rdr sym]
+    (do
+      (reader_next rdr)
+      (list sym (read_form rdr)))))
+
+(def! read_form
+  (fn* [rdr]
+    (let* [token (reader_peek rdr)]
+      (cond
+        (= "'" token)  (read_macro rdr 'quote)
+        (= "`" token)  (read_macro rdr 'quasiquote)
+        (= "~" token)  (read_macro rdr 'unquote)
+        (= "~@" token) (read_macro rdr 'splice-unquote)
+        (= "@" token)  (read_macro rdr 'deref)
+        (= "(" token)  (read_list rdr "(" ")")
+        (= ")" token)  (throw "unexpected ')'")
+        (= "[" token)  (apply vector (read_list rdr "[" "]"))
+        (= "]" token)  (throw "unexpected ']'")
+        (= "{" token)  (apply hash-map (read_list rdr "{" "}"))
+        (= "}" token)  (throw "unexpected '}'")
+        :else          (read_atom rdr)))))
+
+(def! read_str
+  (fn* [str]
+    (read_form (make_reader (tokenize str)))))
+
+; Mal core read-string function
+(def! read-string read_str)

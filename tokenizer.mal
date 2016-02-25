@@ -1,0 +1,70 @@
+(def! string->set
+  (fn* [s]
+    (apply hash-map (apply concat (map (fn* [k] [k true]) (seq s))))))
+
+(def! *whitespace-chars* (string->set " \n"))
+(def! *single-chars-tokens* (string->set "[]{}()'`^@"))
+(def! *separator-chars* (string->set " \n[]{}('\"`,;)"))
+
+(def! whitespace? (fn* [c] (contains? *whitespace-chars* c)))
+(def! single-char-token? (fn* [c] (contains? *single-chars-tokens* c)))
+(def! separator-char? (fn* [c] (contains? *separator-chars* c)))
+
+(def! read-comment-token
+  (fn* [chars]
+    (if (empty? chars)
+      [nil chars]
+      (let* [c0 (first chars)]
+        (if (= "\n" c0)
+          [nil (rest chars)]
+          (read-comment-token (rest chars)))))))
+
+(def! read-word-token
+  (fn* [word chars]
+    (if (empty? chars)
+      [word chars]
+      (let* [c0 (first chars)]
+        (if (separator-char? c0)
+          [word chars]
+          (read-word-token (str word c0) (rest chars)))))))
+
+(def! read-string-token
+  (fn* [word chars]
+    (if (empty? chars)
+      (throw "Expected closing quotes")
+      (let* [c0 (first chars)
+             rc (rest chars)]
+        (cond
+          (= "\"" c0) [(str word c0) rc]
+          (= "\\" c0) (read-string-token (str word c0 (first rc)) (rest rc))
+          :else       (read-string-token (str word c0) rc))))))
+
+(def! read-next-token
+  (fn* [chars]
+    (let* [c0 (first chars)
+           rc (rest chars)]
+      (cond
+        (whitespace? c0)        [nil rc]
+        (= "," c0)              [nil rc]
+        (= "~" c0)              (if (= "@" (nth chars 1))
+                                  ["~@" (rest rc)]
+                                  [c0 rc])
+        (single-char-token? c0) [c0 rc]
+        (= ";" c0)              (read-comment-token chars)
+        (= "\"" c0)             (read-string-token c0 rc)
+        :else                   (read-word-token "" chars)))))
+
+(def! tokenize-chars
+  (fn* [chars tokens]
+    (if (empty? chars)
+      tokens
+      (let* [res (read-next-token chars)
+             token (first res)
+             left-chars (nth res 1)]
+        (if (nil? token)
+          (tokenize-chars left-chars tokens)
+          (tokenize-chars left-chars (concat tokens [token])))))))
+
+(def! tokenize
+  (fn* [str]
+    (tokenize-chars (seq str) [])))
