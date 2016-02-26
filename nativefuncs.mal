@@ -300,6 +300,19 @@
 
 
 ;;
+;; Keyword and symbol
+;;
+(defnativefn keyword keyword [s]
+  (_set_bytearray_char
+    (_set_bytearray_range
+      (_empty_bytearray_obj 19 (+ 1 (_get_len s)))
+      1 (_get_len s) s)
+    0 58)) ; = colon char
+
+(defnativefn symbol symbol [s]
+  (_set_bytearray_range (_empty_bytearray_obj 17 (_get_len s)) 0 (_get_len s) s))
+
+;;
 ;; pr_str / str
 ;;
 (defnativefn _concat_strings_helper _concat_strings_helper [seq index buffer offset]

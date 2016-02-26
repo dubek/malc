@@ -44,3 +44,29 @@
 ;; EXPECTED: (atom 1234)
 (prn (atom "abc"))
 ;; EXPECTED: (atom "abc")
+
+;; Testing string? function
+(prn (string? ""))
+;; EXPECTED: true
+(prn (string? 'abc))
+;; EXPECTED: false
+(prn (string? "abc"))
+;; EXPECTED: true
+(prn (string? :abc))
+;; EXPECTED: false
+(prn (string? (keyword "abc")))
+;; EXPECTED: false
+(prn (string? 234))
+;; EXPECTED: false
+(prn (string? nil))
+;; EXPECTED: false
+
+;; Testing keyword / symbol
+(prn (keyword "abc"))
+;; EXPECTED: :abc
+(prn (keyword? (keyword "abc")))
+;; EXPECTED: true
+(prn (symbol "abc"))
+;; EXPECTED: abc
+(prn (symbol? (symbol "abc")))
+;; EXPECTED: true
