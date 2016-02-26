@@ -1,0 +1,17 @@
+(prn (seq "abc"))
+;; EXPECTED: ("a" "b" "c")
+(prn (apply str (seq "this is a test")))
+;; EXPECTED: "this is a test"
+(prn (seq '(2 3 4)))
+;; EXPECTED: (2 3 4)
+(prn (seq [2 3 4]))
+;; EXPECTED: (2 3 4)
+
+(prn (seq ""))
+;; EXPECTED: nil
+(prn (seq '()))
+;; EXPECTED: nil
+(prn (seq []))
+;; EXPECTED: nil
+(prn (seq nil))
+;; EXPECTED: nil

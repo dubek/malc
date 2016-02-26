@@ -313,6 +313,33 @@
   (_set_bytearray_range (_empty_bytearray_obj 17 (_get_len s)) 0 (_get_len s) s))
 
 ;;
+;; Seq
+;;
+(defnativefn _vector_to_list _vector_to_list [vec]
+  (_concat_elementarrays 33 vec []))
+
+(defnativefn _extract_one_char _extract_one_char [s index]
+  (_set_bytearray_char (_empty_bytearray_obj 18 1) 0 (_get_bytearray_char s index)))
+
+(defnativefn _seq_string_helper _seq_string_helper [s res index len]
+  (if (>= index len)
+    res
+    (do
+      (_set_elementarray_item res index (_extract_one_char s index))
+      (_seq_string_helper s res (+ 1 index) len))))
+
+(defnativefn _seq_string _seq_string [s]
+  (_seq_string_helper s (make-list (_get_len s)) 0 (_get_len s)))
+
+(defnativefn seq seq [obj]
+  (cond
+    (nil? obj)    nil
+    (list? obj)   (if (empty? obj) nil obj)
+    (vector? obj) (if (empty? obj) nil (_vector_to_list obj))
+    (string? obj) (if (= 0 (_get_len obj)) nil (_seq_string obj))
+    :else         (runtime-error "illegal type for seq")))
+
+;;
 ;; pr_str / str
 ;;
 (defnativefn _concat_strings_helper _concat_strings_helper [seq index buffer offset]
