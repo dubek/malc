@@ -70,9 +70,6 @@
 (defnativefn make-func make_func [] (_make_elementarray_obj 66 3))
 (defnativefn make-native-func make_native_func [] (_make_elementarray_obj 67 3))
 
-(defnativefn cons cons [x y]
-  (_set_elementarray_item (_set_elementarray_item (make-list 2) 0 x) 1 y))
-
 (defnativefn symbol?  symbol_Q  [obj] (_integer_equal? 17 (_get_type obj)))
 (defnativefn string?  string_Q  [obj] (_integer_equal? 18 (_get_type obj)))
 (defnativefn keyword? keyword_Q [obj] (_integer_equal? 19 (_get_type obj)))
@@ -149,6 +146,9 @@
   (if (>= index (count seq))
     (runtime-error "nth: index out of range")
     (_get_elementarray_item seq index)))
+
+(defnativefn cons cons [e lst]
+  (_concat_elementarrays 33 [e] lst))
 
 (defnativefn concat-helper concat_helper [result lists]
   (if (empty? lists)
