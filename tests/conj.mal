@@ -1,0 +1,21 @@
+(println (conj (list) 1))
+;; EXPECTED: (1)
+(println (conj (list 1) 2))
+;; EXPECTED: (2 1)
+(println (conj (list 2 3) 4))
+;; EXPECTED: (4 2 3)
+(println (conj (list 2 3) 4 5 6))
+;; EXPECTED: (6 5 4 2 3)
+(println (conj (list 1) (list 2 3)))
+;; EXPECTED: ((2 3) 1)
+
+(println (conj [] 1))
+;; EXPECTED: [1]
+(println (conj [1] 2))
+;; EXPECTED: [1 2]
+(println (conj [2 3] 4))
+;; EXPECTED: [2 3 4]
+(println (conj [2 3] 4 5 6))
+;; EXPECTED: [2 3 4 5 6]
+(println (conj [1] [2 3]))
+;; EXPECTED: [1 [2 3]]

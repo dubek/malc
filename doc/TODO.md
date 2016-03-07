@@ -2,7 +2,6 @@
 
 Functions missing from the Mal core:
 
-- conj
 - meta / with-meta
 - read-string (that's a big one)
 - eval (requires JIT compiling?)

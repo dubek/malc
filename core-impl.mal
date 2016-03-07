@@ -30,6 +30,12 @@
   (fn* [& args]
     (concat-helper (make-list 0) args)))
 
+(def! conj
+  (fn* [coll & args]
+    (if (vector? coll)
+      (conj-vector coll args)
+      (conj-list coll args))))
+
 (def! apply
   (fn* [f & args]
     (if (<= (count args) 1)

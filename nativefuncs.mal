@@ -313,6 +313,17 @@
   (_set_bytearray_range (_empty_bytearray_obj 17 (_get_len s)) 0 (_get_len s) s))
 
 ;;
+;; conj
+;;
+(defnativefn conj-list conj_list [lst args]
+  (if (empty? args)
+    lst
+    (conj-list (cons (first args) lst) (rest args))))
+
+(defnativefn conj-vector conj_vector [vec args]
+  (_concat_elementarrays 34 vec args))
+
+;;
 ;; Seq
 ;;
 (defnativefn _vector_to_list _vector_to_list [vec]
