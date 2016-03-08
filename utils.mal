@@ -21,10 +21,10 @@
       (helper [] 0))))
 
 (def! last
-  (fn* [seq]
-    (if (empty? seq)
+  (fn* [coll]
+    (if (empty? coll)
       nil
-      (nth seq (- (count seq) 1)))))
+      (nth coll (- (count coll) 1)))))
 
 (def! all?
   (fn* [pred lst]
@@ -34,12 +34,12 @@
         (all? pred (rest lst))
         false))))
 
-(def! *digits* {"0" true "1" true "2" true "3" true "4" true
-                "5" true "6" true "7" true "8" true "9" true})
+(def! *digits-set* {"0" true "1" true "2" true "3" true "4" true
+                    "5" true "6" true "7" true "8" true "9" true})
 
 (def! all-digits?
   (fn* [chars]
-    (all? (fn* [c] (contains? *digits* c)) chars)))
+    (all? (fn* [c] (contains? *digits-set* c)) chars)))
 
 (def! number?
   (fn* [o]
@@ -54,17 +54,20 @@
       (vector? o)  false
       (map? o)     false
       (atom? o)    false
-      :else        (all-digits? (seq (str o))))))
+      :else        (let* [chars (seq (str o))]
+                     (if (= "-" (first chars))
+                       (all-digits? (rest chars))
+                       (all-digits? chars))))))
 
 (def! string/join
-  (fn* [separator seq]
+  (fn* [separator coll]
     (let*
       [iter (fn* [res xs]
               (cond
                 (empty? xs)      ""
                 (= (count xs) 1) (str res (first xs))
                 'else            (iter (str res (first xs) separator) (rest xs))))]
-      (iter "" seq))))
+      (iter "" coll))))
 
 (def! n-entries
   (fn* [func size]
@@ -76,22 +79,22 @@
       (helper (list)))))
 
 (def! map-with-index
-  (fn* [func seq]
+  (fn* [func coll]
     (let* [loop-func
            (fn* [remaining-seq seq-index map-result]
              (if (empty? remaining-seq)
                map-result
                (loop-func (rest remaining-seq) (inc seq-index) (concat map-result [(func (first remaining-seq) seq-index)]))))]
-      (loop-func seq 0 '()))))
+      (loop-func coll 0 '()))))
 
 (def! vector-map-with-index
-  (fn* [func seq]
+  (fn* [func coll]
     (let* [loop-func
            (fn* [remaining-seq seq-index map-result]
              (if (empty? remaining-seq)
                map-result
                (loop-func (rest remaining-seq) (inc seq-index) (conj map-result (func (first remaining-seq) seq-index)))))]
-      (loop-func seq 0 []))))
+      (loop-func coll 0 []))))
 
 (def! zip
   (fn* [a b]
