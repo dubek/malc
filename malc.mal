@@ -563,12 +563,12 @@
            user-prog-ast (read-string (str "(do " s ")"))
            whole-ast (list 'do core-impl-ast tokenizer-ast reader-ast user-prog-ast)]
       (do
-        (emit (slurp (malc-file "header.ll")))
+        (emit (slurp (malc-file "runtime-header.ll")))
         (emit (compile nil nativefuncs-ast 'native-func))
         (emit (define-mal-func "@mal_prog_main" whole-ast))
         (emit-functions-definitions)
         (emit-strings-list)
-        (emit (slurp (malc-file "footer.ll")))))))
+        (emit (slurp (malc-file "runtime-footer.ll")))))))
 
 (def! compile-program-file
   (fn* [filename]
