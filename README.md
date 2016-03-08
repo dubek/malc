@@ -34,8 +34,8 @@ To install the dependencies on RedHat/CentOS:
 
 Besides these dependencies, malc needs a working Mal interpreter; malc comes
 bundled with the Ruby implementation of the Mal interpreter (in
-`mal-interpreter` directory) to easier invocation of malc.  Hence, a working
-Ruby runtime is required.  Alternatively, you can choose another Mal
+`mal-interpreter` directory) for an easier invocation of malc.  Hence, a
+working Ruby runtime is required.  Alternatively, you can choose another Mal
 implementation using the `MAL_IMPL` environment variable; see below.
 
 
@@ -87,7 +87,7 @@ For compiled Mal interpreters just set `MAL_IMPL`; for example:
 
 ## Running tests
 
-The functional tests for malc are in files under the `tests/` directory.
+The functional tests for malc are under the `tests/` directory.
 
 To run all the tests:
 
