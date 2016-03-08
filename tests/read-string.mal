@@ -4,5 +4,8 @@
 (prn (read-string "(+ 2 3)"))
 ;; EXPECTED: (+ 2 3)
 
+(prn (read-string "(- 555 210)"))
+;; EXPECTED: (- 555 210)
+
 (prn (read-string "7 ;; comment"))
 ;; EXPECTED: 7

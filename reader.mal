@@ -21,28 +21,28 @@
         (reset! rdr {:tokens tokens :pos (+ 1 pos)})
         (nth tokens pos)))))
 
-(def! *digits* {"0" 0 "1" 1 "2" 2 "3" 3 "4" 4 "5" 5 "6" 6 "7" 7 "8" 8 "9" 9})
-(def! digit? (fn* [c] (contains? *digits* c)))
+(def! *digits-values* {"0" 0 "1" 1 "2" 2 "3" 3 "4" 4 "5" 5 "6" 6 "7" 7 "8" 8 "9" 9})
+(def! digit-char? (fn* [c] (contains? *digits-values* c)))
 
 (def! string->integer-helper
   (fn* [val chars]
     (if (empty? chars)
       val
-      (string->integer-helper (+ (* 10 val) (get *digits* (first chars))) (rest chars)))))
+      (string->integer-helper (+ (* 10 val) (get *digits-values* (first chars))) (rest chars)))))
 
 (def! string->integer
-  (fn* [str]
-    (string->integer-helper 0 (seq str))))
+  (fn* [token-chars]
+    (string->integer-helper 0 token-chars)))
 
 (def! read_negative_integer
   (fn* [token-chars]
-    (- 0 (string->integer (apply str (rest token-chars))))))
+    (- 0 (string->integer-helper 0 (rest token-chars)))))
 
 (def! negative_number?
   (fn* [token-chars]
     (if (> (count token-chars) 1)
       (if (= "-" (first token-chars))
-        (digit? (nth token-chars 1))
+        (digit-char? (nth token-chars 1))
         false)
       false)))
 
@@ -72,9 +72,8 @@
            token-chars (seq token)
            tc0 (first token-chars)]
       (cond
-        (digit? tc0) (string->integer token)
+        (digit-char? tc0) (string->integer token-chars)
         (negative_number? token-chars) (read_negative_integer token-chars)
-        (= "-" tc0) (read_negative_integer token)
         (= ":" tc0) (keyword (apply str (rest token-chars)))
         (= "\"" tc0) (unescape_string (rest token-chars) [])
         (= "true" token) true
