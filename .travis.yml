@@ -8,4 +8,4 @@ addons:
 
 script:
   - ./runtests.sh
-  - ./runperf.sh
+  #- ./runperf.sh
