@@ -9,7 +9,7 @@ fi
 bindir=$(readlink -f $(dirname $0))
 
 # user overridable
-MALC=${MALC:-}
+MAL_TO_LLVM=${MAL_TO_LLVM:-}
 MAL_PREFIX=${MAL_PREFIX:-}
 MAL_IMPL=$(readlink -f ${MAL_IMPL:-$bindir/mal-interpreter/mal})
 
@@ -30,10 +30,10 @@ else
   out="$(dirname $srcfile)/$(basename $srcfile .mal)"
 fi
 
-if [ -z "$MALC" ] ; then
-  ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $compilemode $bindir $srcfile > $out.ll
+if [ -z "$MAL_TO_LLVM" ] ; then
+  ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/mal-to-llvm.mal $compilemode $bindir $srcfile > $out.ll
 else
-  $MALC $compilemode $bindir $srcfile > $out.ll
+  $MAL_TO_LLVM $compilemode $bindir $srcfile > $out.ll
 fi
 
 opt -S -O3 $out.ll -o $out.opt.ll
