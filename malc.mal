@@ -557,11 +557,11 @@
 (def! compile-program-string
   (fn* [s]
     (let* [runtime-native-funcs-ast (read-string (str "(do " (slurp (malc-file "runtime-native-funcs.mal")) ")"))
-           core-impl-ast (read-string (str "(do " (slurp (malc-file "core-impl.mal")) ")"))
+           runtime-core-funcs-ast (read-string (str "(do " (slurp (malc-file "runtime-core-funcs.mal")) ")"))
            tokenizer-ast (read-string (str "(do " (slurp (malc-file "tokenizer.mal")) ")"))
            reader-ast (read-string (str "(do " (slurp (malc-file "reader.mal")) ")"))
            user-prog-ast (read-string (str "(do " s ")"))
-           whole-ast (list 'do core-impl-ast tokenizer-ast reader-ast user-prog-ast)]
+           whole-ast (list 'do runtime-core-funcs-ast tokenizer-ast reader-ast user-prog-ast)]
       (do
         (emit (slurp (malc-file "runtime-header.ll")))
         (emit (compile nil runtime-native-funcs-ast 'native-func))

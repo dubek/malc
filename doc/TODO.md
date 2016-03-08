@@ -16,7 +16,7 @@ Compiler features:
 - add debugging symbols (-g)
 - hide malc's internal functions (those defined in nativefuncs.mal) so they
   won't be visible from the user's Mal program (but will be visible to
-  `core-impl.mal`)
+  `runtime-core-funcs.mal`)
 
 Performance:
 
