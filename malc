@@ -9,6 +9,7 @@ fi
 bindir=$(readlink -f $(dirname $0))
 
 # user overridable
+MALC=${MALC:-}
 MAL_PREFIX=${MAL_PREFIX:-}
 MAL_IMPL=$(readlink -f ${MAL_IMPL:-$bindir/mal-interpreter/mal})
 
@@ -29,7 +30,12 @@ else
   out="$(dirname $srcfile)/$(basename $srcfile .mal)"
 fi
 
-${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $compilemode $bindir $srcfile > $out.ll
+if [ -z "$MALC" ] ; then
+  ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/malc.mal $compilemode $bindir $srcfile > $out.ll
+else
+  $MALC $compilemode $bindir $srcfile > $out.ll
+fi
+
 opt -S -O3 $out.ll -o $out.opt.ll
 llc -filetype=obj $out.opt.ll -o $out.o
 gcc -g $out.o -lgc -lreadline -lstdc++ -o $out
