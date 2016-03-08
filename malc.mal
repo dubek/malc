@@ -556,7 +556,7 @@
 
 (def! compile-program-string
   (fn* [s]
-    (let* [nativefuncs-ast (read-string (str "(do " (slurp (malc-file "nativefuncs.mal")) ")"))
+    (let* [runtime-native-funcs-ast (read-string (str "(do " (slurp (malc-file "runtime-native-funcs.mal")) ")"))
            core-impl-ast (read-string (str "(do " (slurp (malc-file "core-impl.mal")) ")"))
            tokenizer-ast (read-string (str "(do " (slurp (malc-file "tokenizer.mal")) ")"))
            reader-ast (read-string (str "(do " (slurp (malc-file "reader.mal")) ")"))
@@ -564,7 +564,7 @@
            whole-ast (list 'do core-impl-ast tokenizer-ast reader-ast user-prog-ast)]
       (do
         (emit (slurp (malc-file "runtime-header.ll")))
-        (emit (compile nil nativefuncs-ast 'native-func))
+        (emit (compile nil runtime-native-funcs-ast 'native-func))
         (emit (define-mal-func "@mal_prog_main" whole-ast))
         (emit-functions-definitions)
         (emit-strings-list)
