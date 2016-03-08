@@ -2,6 +2,7 @@
 
 Functions missing from the Mal core:
 
+- defmacro! / macroexpand
 - meta / with-meta
 - eval (requires JIT compiling?)
 
@@ -10,8 +11,6 @@ Compiler features:
 - memory structure: since elementarray and bytearray sizes are known during
   allocation, we can allocate one continuous space for header + data (instead
   of allocating the data array separately).
-- separate macro namespace (currently we expand macros in malc's namespace,
-  which is ugly)
 - better error detection during compilation (for example, calling `+` with
   non-integer arguments, or wrong number of arguments)
 - add debugging symbols (-g)

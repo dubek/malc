@@ -66,10 +66,6 @@
   (fn* [& args]
     args))
 
-(def! append-lines-seq
-  (fn* [seq]
-    seq))
-
 (def! line
   (fn* [& args]
     (string/join " " args)))
@@ -134,9 +130,8 @@
            argregs-with-types (map (fn* [a] (str "%mal_obj " a)) argregs)]
       (append-lines
         (debug-line "compile-apply-native-func" result ast)
-        (append-lines-seq
-          (map (fn* [re] (compile (first re) (nth re 1) env-type)) argregs-with-exprs))
-          (line result "= call %mal_obj" (str "@" llvm-func-name) "(" (string/join ", " argregs-with-types) ")")))))
+        (map (fn* [re] (compile (first re) (nth re 1) env-type)) argregs-with-exprs)
+        (line result "= call %mal_obj" (str "@" llvm-func-name) "(" (string/join ", " argregs-with-types) ")")))))
 
 (def! compile-apply-mal-func
   (fn* [result ast env-type]
@@ -184,7 +179,8 @@
     (let* [params-with-types (map (fn* [p] (str "%mal_obj %"  p)) params)]
       (do
         (add-native-func name llvm-name params)
-        (if (not (empty? body))
+        (if (empty? body)
+          (append-lines (line ""))
           (append-lines
             (line "")
             (line "")
@@ -192,8 +188,7 @@
             (compile "%funcresult" (first body) 'native-func)
             (line "ret %mal_obj %funcresult")
             (line "} ; end of native func " llvm-name)
-            (line ""))
-          (line ""))))))
+            (line "")))))))
 
 (def! llvm-func-type
   (fn* [args-num]
@@ -299,19 +294,34 @@
           (line-label after-try-label)
           (line-assign result "load %mal_obj*" result-stack-reg))))))
 
-; AST manipulation: rewrite let* as nested fn*
+; AST manipulation: rewrite let* as an anonymous fn* with def! inside
 ; Converts (let* [x 8 y (+ x 2)] (body ...))
-; to ((fn* [x] ((fn* [y] (body ...)) (+ x 2))) 8)
+; to ((fn* [] (do (def! x 8) (def! y (+ x 2)) (body ...))))
 (def! convert-let*-to-fn*
   (fn* [ast]
-    (let* [helper (fn* [vars body]
-                    (let* [var1-name (nth vars 0)
-                           var1-value (nth vars 1)
-                           rest-vars (rest (rest vars))]
-                      (if (empty? rest-vars)
-                        (list (list 'fn* [var1-name] body) var1-value)
-                        (list (list 'fn* [var1-name] (helper rest-vars body)) var1-value))))]
-      (helper (nth ast 1) (nth ast 2)))))
+    (let* [vars-to-defs (fn* [vars defs]
+                          (if (empty? vars)
+                            defs
+                            (let* [var1-name (nth vars 0)
+                                   var1-value (nth vars 1)
+                                   rest-vars (rest (rest vars))]
+                              (vars-to-defs rest-vars (concat defs [(list 'def! var1-name var1-value)])))))
+           defs (vars-to-defs (nth ast 1) [])
+           body (nth ast 2)]
+      (list (list 'fn* [] (concat (list 'do) defs [body]))))))
+
+; AST manipulation: rewrite cond as nested if
+; This is similar to the cond macro in standard Mal implementations
+(def! convert-cond-to-if
+  (fn* [ast]
+    (let* [helper (fn* [xs]
+                    (let* [c1-cond (nth xs 0)
+                           c1-exp (nth xs 1)
+                           rest-cs (rest (rest xs))]
+                      (if (empty? rest-cs)
+                        (list 'if c1-cond c1-exp)
+                        (list 'if c1-cond c1-exp (helper rest-cs)))))]
+      (helper (rest ast)))))
 
 (def! compile-load-file
   (fn* [result filename env-type]
@@ -326,13 +336,6 @@
         (= 'load-file a0)
           (compile-load-file result (nth ast 1) env-type)
 
-        (= 'defmacro! a0)
-          (do
-            (eval ast)
-            (if result
-              (compile-nil result)
-              (line "")))
-
         (= 'def! a0)
           (let* [var-reg (new-reg)
                  val-reg (new-reg)]
@@ -344,6 +347,9 @@
         (= 'let* a0)
           (compile result (convert-let*-to-fn* ast) env-type)
 
+        (= 'cond a0)
+          (compile result (convert-cond-to-if ast) env-type)
+
         (= 'quote a0)
           (compile-literal result (nth ast 1) env-type)
 
@@ -352,7 +358,7 @@
                  regs-and-lines (map (fn* [e] (compile-temp e env-type)) exprs)
                  lines (map (fn* [p] (nth p 1)) regs-and-lines)]
             (append-lines
-              (append-lines-seq lines)
+              lines
               (if result
                 (line-assign-to-reg result (first (last regs-and-lines)))
                 (line ""))))
@@ -369,7 +375,7 @@
         (= 'defnativefn a0)
           (apply compile-native-func (rest ast))
 
-        'else
+        :else
           (compile-apply result ast env-type)))))
 
 (def! compile-temp
@@ -413,8 +419,7 @@
         (compile type-reg type-num env-type)
         (compile len-reg (count itemsregs) env-type)
         (line result "= call %mal_obj @mal_make_elementarray_obj(%mal_obj " type-reg ", %mal_obj " len-reg ")")
-        (append-lines-seq
-          (vector-map-with-index (fn* [r index] (set-elementarray-item result index r)) itemsregs))))))
+        (vector-map-with-index (fn* [r index] (set-elementarray-item result index r)) itemsregs)))))
 
 (def! compile-literal-elementarray
   (fn* [type-num result ast env-type]
@@ -422,7 +427,7 @@
            regs-and-exprs (zip regs ast)
            lines (map (fn* [re] (compile-literal (first re) (nth re 1) env-type)) regs-and-exprs)]
       (append-lines
-        (append-lines-seq lines)
+        lines
         (compile-elementarray result type-num regs env-type)))))
 
 (def! compile-literal-list
@@ -439,7 +444,7 @@
            regs-and-exprs (zip regs ast)
            lines (map (fn* [re] (compile (first re) (nth re 1) env-type)) regs-and-exprs)]
       (append-lines
-        (append-lines-seq lines)
+        lines
         (compile-elementarray result 34 regs env-type)))))
 
 (def! map-to-list-helper
@@ -459,7 +464,7 @@
            regs-and-exprs (zip regs lst)
            lines (map (fn* [re] (compile (first re) (nth re 1) env-type)) regs-and-exprs)]
       (append-lines
-        (append-lines-seq lines)
+        lines
         (compile-elementarray result 35 regs env-type)))))
 
 (def! compile-fn
@@ -493,44 +498,38 @@
     (append-lines
       (debug-line "compile-literal" result ast)
       (cond
-        (nil? ast) (compile-nil result)
-        (true? ast) (compile-true result)
-        (false? ast) (compile-false result)
-        (number? ast) (compile-const-integer result ast)
-        (symbol? ast) (compile-const-bytearray result 17 ast)
-        (string? ast) (compile-const-bytearray result 18 ast)
+        (nil? ast)     (compile-nil result)
+        (true? ast)    (compile-true result)
+        (false? ast)   (compile-false result)
+        (number? ast)  (compile-const-integer result ast)
+        (symbol? ast)  (compile-const-bytearray result 17 ast)
+        (string? ast)  (compile-const-bytearray result 18 ast)
         (keyword? ast) (compile-const-bytearray result 19 ast)
-        (list? ast) (compile-literal-list result ast env-type)
-        (vector? ast) (compile-literal-vector result ast env-type)))))
+        (list? ast)    (compile-literal-list result ast env-type)
+        (vector? ast)  (compile-literal-vector result ast env-type)))))
 
 (def! literal?
   (fn* [ast]
-    (or (nil? ast)
-        (true? ast)
-        (false? ast)
-        (number? ast)
-        (symbol? ast)
-        (string? ast)
-        (keyword? ast))))
-
-(def! expand-macros
-  (fn* [ast]
-    (if (list? ast)
-      (eval (list 'macroexpand ast))
-      ast)))
+    (cond
+      (nil? ast)     true
+      (true? ast)    true
+      (false? ast)   true
+      (number? ast)  true
+      (symbol? ast)  true
+      (string? ast)  true
+      (keyword? ast) true
+      :else          false)))
 
 (def! compile
   (fn* [result ast env-type]
-    (let* [exp-ast (expand-macros ast)]
-      (append-lines
-        (debug-line "compile" ast)
-        (debug-line "exp-ast" exp-ast)
-        (cond
-          (symbol? exp-ast) (compile-variable result exp-ast env-type)
-          (literal? exp-ast) (compile-literal result exp-ast env-type)
-          (list? exp-ast) (compile-list result exp-ast env-type)
-          (vector? exp-ast) (compile-vector result exp-ast env-type)
-          (map? exp-ast) (compile-hash-map result exp-ast env-type))))))
+    (append-lines
+      (debug-line "compile" ast)
+      (cond
+        (symbol? ast)  (compile-variable result ast env-type)
+        (literal? ast) (compile-literal result ast env-type)
+        (list? ast)    (compile-list result ast env-type)
+        (vector? ast)  (compile-vector result ast env-type)
+        (map? ast)     (compile-hash-map result ast env-type)))))
 
 (def! define-mal-func
   (fn* [name body]

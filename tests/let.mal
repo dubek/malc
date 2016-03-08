@@ -32,3 +32,7 @@
 ;; Testing vector evaluation
 (println (let* (a 5 b 6) [3 4 a [b 7] 8]))
 ;; EXPECTED: [3 4 5 [6 7] 8]
+
+;; Testing let* recursive functions evaluation
+(println (let* [iter (fn* [n sum] (if (<= n 0) sum (iter (- n 1) (+ sum n))))] (iter 10 0)))
+;; EXPECTED: 55
