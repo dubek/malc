@@ -66,20 +66,21 @@ fi
 
 # user overridable
 MAL_TO_LLVM=${MAL_TO_LLVM:-}
-MAL_PREFIX=${MAL_PREFIX:-}
-MAL_IMPL=$(readlink -f ${MAL_IMPL:-$bindir/mal-interpreter/mal})
 
 log "Source file: $srcfile"
 log "Compile mode: $compile_mode"
 log "Intermediate LLVM IR file: ${outfile}.ll"
 
 # Compile mal to LLVM IR
-if [ -z "$MAL_TO_LLVM" ] ; then
-  log "Running mal-to-llvm program: ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/mal-to-llvm.mal"
+log "Compiling Mal program to LLVM IR"
+if [ -n "$MAL_IMPL" ] ; then
+  MAL_PREFIX=${MAL_PREFIX:-}
+  MAL_IMPL=$(readlink -f ${MAL_IMPL})
+  log "Using Mal interpreter: ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/mal-to-llvm.mal"
   ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/mal-to-llvm.mal $compile_mode $bindir $srcfile > "${outfile}.ll"
 else
-  log "Running mal-to-llvm program: $MAL_TO_LLVM"
-  $MAL_TO_LLVM $compile_mode $bindir $srcfile > "${outfile}.ll"
+  log "Using binary compiler: $bindir/mal-to-llvm"
+  $bindir/mal-to-llvm $compile_mode $bindir $srcfile > "${outfile}.ll"
 fi
 
 # Optimize generated LLVM IR

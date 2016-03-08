@@ -1,3 +1,5 @@
+(load-file "utils.mal")
+
 (def! *malc-path* (atom "."))
 (def! *compile-mode* (atom "release"))
 
@@ -579,7 +581,6 @@
     (do
       (reset! *compile-mode* compile-mode)
       (reset! *malc-path* malc-path)
-      (load-file (malc-file "utils.mal"))
       (compile-program-file source-filename))))
 
 (if (< (count *ARGV*) 3)

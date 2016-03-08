@@ -7,5 +7,6 @@ addons:
       - libreadline6
 
 script:
+  - ./bootstrap.sh
   - ./runtests.sh
   #- ./runperf.sh
