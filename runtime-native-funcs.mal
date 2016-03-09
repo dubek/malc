@@ -166,7 +166,7 @@
       (get-helper hm key (+ 2 index)))))
 
 (defnativefn get get [hm key]
-  (get-helper hm key 0))
+  (if (nil? hm) nil (get-helper hm key 0)))
 
 (defnativefn contains-helper contains_helper [hm key index]
   (if (>= index (_get_len hm))
