@@ -1,0 +1,9 @@
+(prn (or (do (println "abc") 11) (do (println "def") 22)))
+;; EXPECTED: abc
+;; EXPECTED: 11
+(prn (or (do (println "abc") false) (do (println "def") 22)))
+;; EXPECTED: abc
+;; EXPECTED: def
+;; EXPECTED: 22
+(prn (or nil 56))
+;; EXPECTED: 56

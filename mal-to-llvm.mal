@@ -333,6 +333,14 @@
                         (list 'if c1-cond c1-exp (helper rest-cs)))))]
       (helper (rest ast)))))
 
+; AST manipulation: rewrite or as if
+; This is similar to the or macro in standard Mal implementations, but deals
+; only with two arguments
+(def! convert-or-to-if
+  (fn* [ast]
+    (list 'let* (list 'or_FIXME (nth ast 1))
+          (list 'if 'or_FIXME 'or_FIXME (nth ast 2)))))
+
 (def! compile-load-file
   (fn* [result filename env-type]
     (append-lines
@@ -359,6 +367,9 @@
 
         (= 'cond a0)
           (compile result (convert-cond-to-if ast) env-type)
+
+        (= 'or a0)
+          (compile result (convert-or-to-if ast) env-type)
 
         (= 'quote a0)
           (compile-literal result (nth ast 1) env-type)
