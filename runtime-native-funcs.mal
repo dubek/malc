@@ -55,13 +55,8 @@
 (defnativefn deref deref [atm])
 
 ;;
-;; Runtime error
+;; Mal object constructors
 ;;
-(defnativefn runtime-error runtime_error [msg]
-  (do
-    (_printbytearray (_pr_str_one msg false))
-    (os-exit 1)))
-
 (defnativefn make-list make_list [len] (_make_elementarray_obj 33 len))
 (defnativefn make-vector make_vector [len] (_make_elementarray_obj 34 len))
 (defnativefn make-map make_map [len] (_make_elementarray_obj 35 len))
@@ -144,7 +139,7 @@
 
 (defnativefn nth nth [seq index]
   (if (>= index (count seq))
-    (runtime-error "nth: index out of range")
+    (throw "nth: index out of range")
     (_get_elementarray_item seq index)))
 
 (defnativefn cons cons [e lst]
@@ -255,7 +250,7 @@
 (defnativefn env-get-helper env_get_helper [found-env k]
   (if found-env
     (get (env-data found-env) k)
-    (runtime-error [k "not found"])))
+    (throw [k "not found"])))
 
 (defnativefn env-get env_get [env k]
   (env-get-helper (env-find env k) k))
@@ -348,7 +343,7 @@
     (list? obj)   (if (empty? obj) nil obj)
     (vector? obj) (if (empty? obj) nil (_vector_to_list obj))
     (string? obj) (if (= 0 (_get_len obj)) nil (_seq_string obj))
-    :else         (runtime-error "illegal type for seq")))
+    :else         (throw "illegal type for seq")))
 
 ;;
 ;; meta - stubs for now (TODO real meta implementation)

@@ -419,7 +419,7 @@ ThreeArgs:
   %result_3 = call %mal_obj %casted_funcptr_3(%mal_obj %arg_0_3, %mal_obj %arg_1_3, %mal_obj %arg_2_3)
   ret %mal_obj %result_3
 TooMany:
-  call %mal_obj @runtime_error(%mal_obj %i0)
+  call %mal_obj @mal_throw(%mal_obj %i0)
   ret %mal_obj 0
 }
 
