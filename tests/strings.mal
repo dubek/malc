@@ -1,14 +1,5 @@
-(def! s (_empty_bytearray_obj 18 10))
-(_set_bytearray_range s 0 4 "ABCD")
-(_set_bytearray_range s 4 3 "efg")
-(_set_bytearray_range s 7 3 "HIJ")
-(prn s)
-;; EXPECTED: "ABCDefgHIJ"
-
-(prn (_integer_to_string 98765))
+(prn (str 98765))
 ;; EXPECTED: "98765"
-(prn (_get_len (_integer_to_string 24680)))
-;; EXPECTED: 5
 (println 13579)
 ;; EXPECTED: 13579
 
@@ -24,12 +15,8 @@
 ;; EXPECTED: first
 ;; EXPECTED: second
 ;; EXPECTED: third
-(println (_get_len "first\nsecond\nthird"))
+(println (count (seq "first\nsecond\nthird")))
 ;; EXPECTED: 18
-(println (_get_bytearray_char "first\nsecond\nthird" 0))
-;; EXPECTED: 102
-(println (_get_bytearray_char "first\nsecond\nthird" 5))
-;; EXPECTED: 10
 (prn "first\nsecond\nthird\nbacksash \\ and quotes \" the end")
 ;; EXPECTED: "first\nsecond\nthird\nbacksash \\ and quotes \" the end"
 

@@ -1,7 +1,7 @@
 (def! content (slurp "tests/slurp_test.txt"))
 
 ; The file size
-(println (_get_len content))
+(println (count (seq content)))
 ;; EXPECTED: 66
 
 (println content)

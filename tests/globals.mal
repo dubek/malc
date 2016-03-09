@@ -3,7 +3,7 @@
 
 (println (string? *ARGV0*))
 ;; EXPECTED: true
-(println (> (_get_len *ARGV0*) 0))
+(println (not (= "" *ARGV0*)))
 ;; EXPECTED: true
 
 (println (list? *ARGV*))
