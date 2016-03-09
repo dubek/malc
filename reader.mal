@@ -94,7 +94,7 @@
   (fn* [rdr start end]
     (let* [token (reader_next rdr)]
       (if (= start token)
-        (let* [lst (read_sequence_entries rdr end '())]
+        (let* [lst (read_sequence_entries rdr end (list))]
           (do
             (reader_next rdr) ; skip the closing paren
             lst))
@@ -106,6 +106,13 @@
       (reader_next rdr)
       (list sym (read_form rdr)))))
 
+(def! read_with_meta
+  (fn* [rdr]
+    (do
+      (reader_next rdr)
+      (let* [meta-obj (read_form rdr)]
+        (list 'with-meta (read_form rdr) meta-obj)))))
+
 (def! read_form
   (fn* [rdr]
     (let* [token (reader_peek rdr)]
@@ -114,6 +121,7 @@
         (= "`" token)  (read_macro rdr 'quasiquote)
         (= "~" token)  (read_macro rdr 'unquote)
         (= "~@" token) (read_macro rdr 'splice-unquote)
+        (= "^" token)  (read_with_meta rdr)
         (= "@" token)  (read_macro rdr 'deref)
         (= "(" token)  (read_list rdr "(" ")")
         (= ")" token)  (throw "unexpected ')'")
@@ -124,8 +132,11 @@
         :else          (read_atom rdr)))))
 
 (def! read_str
-  (fn* [str]
-    (read_form (make_reader (tokenize str)))))
+  (fn* [code-string]
+    (let* [tokens (tokenize code-string)]
+      (if (empty? tokens)
+        nil
+        (read_form (make_reader tokens))))))
 
 ; Mal core read-string function
 (def! read-string read_str)
