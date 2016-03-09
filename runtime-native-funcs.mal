@@ -500,3 +500,27 @@
     (env-set env '*host-language* "malc")
     (env-set env '*ARGV0* (c-argv-str 0))
     (env-set env '*ARGV* (prepare_argv_list 1 (c-argc) (make-list (- (c-argc) 1))))))
+
+;;
+;; Public (exported) native functions
+;;
+(exportnativefn =
+                throw
+                nil? true? false? string?
+                symbol symbol? keyword keyword?
+                readline slurp
+                < <= > >= + - * /
+                list? vector? map? get contains? keys vals
+                sequential? cons nth first rest empty? count map
+                seq
+                atom atom? deref reset!
+                time-ms os-exit gc-get-heap-size gc-get-total-bytes
+                ; TODO - the following functions are used by
+                ; runtime-core-funcs.mal but should not be exposed to user code
+                apply-helper concat-helper
+                assoc1 dissoc1
+                hash-map-from-list
+                conj-list conj-vector
+                drop last
+                _printbytearray _pr_str_sequence
+                _concat_elementarrays _slice_elementarray)

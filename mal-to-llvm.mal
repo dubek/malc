@@ -57,8 +57,12 @@
 (def! *native-funcs* (atom {}))
 (def! add-native-func
   (fn* [name llvm-name llvm-args]
-    (do
-      (swap! *native-funcs* assoc (str name) ['llvm-func llvm-name llvm-args]))))
+    (swap! *native-funcs* assoc (str name) ['llvm-func llvm-name llvm-args])))
+
+(def! *exported-native-funcs* (atom {}))
+(def! add-exported-native-func
+  (fn* [name]
+    (swap! *exported-native-funcs* assoc (str name) true)))
 
 (def! debug-line
   (fn* [message & args]
@@ -122,6 +126,10 @@
   (fn* [funcname]
     (get @*native-funcs* (str funcname))))
 
+(def! exported-native-func?
+  (fn* [funcname]
+    (contains? @*exported-native-funcs* (str funcname))))
+
 (def! compile-apply-native-func
   (fn* [result ast env-type]
     (let* [funcname (first ast)
@@ -169,7 +177,7 @@
                 (throw (str "Unknown function '" funcname "'")))
 
           (= env-type 'mal-env)
-            (if (native-func? funcname)
+            (if (exported-native-func? funcname)
               (compile-apply-native-func result ast env-type) ; Optimized function application for built-in functions
               (compile-apply-mal-func result ast env-type))
 
@@ -377,6 +385,11 @@
         (= 'defnativefn a0)
           (apply compile-native-func (rest ast))
 
+        (= 'exportnativefn a0)
+          (do
+            (map add-exported-native-func (rest ast))
+            (line ""))
+
         :else
           (compile-apply result ast env-type)))))
 
@@ -391,17 +404,19 @@
       (= env-type 'native-func)
         (line-assign-to-reg result (str "%" var-name))
 
-      (native-func? var-name)
-        (let* [funcobj (get-native-func var-name)
-               llvm-func-name (nth funcobj 1)
-               llvm-func-args (nth funcobj 2)]
-          (compile-nativefn-value result llvm-func-name llvm-func-args))
-
       (= env-type 'mal-env)
-        (let* [var-name-reg (new-reg)]
-          (append-lines
-            (compile-literal var-name-reg var-name env-type)
-            (line-assign result "call %mal_obj @env_get(%mal_obj %env, %mal_obj" var-name-reg ")"))))))
+        (if (exported-native-func? var-name)
+          (let* [funcobj (get-native-func var-name)
+                 llvm-func-name (nth funcobj 1)
+                 llvm-func-args (nth funcobj 2)]
+            (compile-nativefn-value result llvm-func-name llvm-func-args))
+          (let* [var-name-reg (new-reg)]
+            (append-lines
+              (compile-literal var-name-reg var-name env-type)
+              (line-assign result "call %mal_obj @env_get(%mal_obj %env, %mal_obj" var-name-reg ")"))))
+
+      :else
+        (throw "Unknown env-type"))))
 
 (def! set-elementarray-item
   (fn* [result index item-reg]

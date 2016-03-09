@@ -28,7 +28,7 @@
 
 (def! concat
   (fn* [& args]
-    (concat-helper (make-list 0) args)))
+    (concat-helper (list) args)))
 
 (def! conj
   (fn* [coll & args]
