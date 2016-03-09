@@ -1,0 +1,6 @@
+(prn (cond true 11 true 22 :else 33))
+;; EXPECTED: 11
+(prn (cond false 11 nil 22 :else 33))
+;; EXPECTED: 33
+(prn (cond false 7 (= 2 2) 8 "else" 9))
+;; EXPECTED: 8
