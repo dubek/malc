@@ -351,6 +351,15 @@
     :else         (runtime-error "illegal type for seq")))
 
 ;;
+;; meta - stubs for now (TODO real meta implementation)
+;;
+(defnativefn meta meta [obj]
+  nil)
+
+(defnativefn with-meta with_meta [obj new-meta]
+  obj)
+
+;;
 ;; pr_str / str
 ;;
 (defnativefn _concat_strings_helper _concat_strings_helper [seq index buffer offset]
@@ -513,7 +522,7 @@
                 list? vector? map? get contains? keys vals
                 sequential? cons nth first rest empty? count map
                 seq
-                atom atom? deref reset!
+                meta with-meta atom atom? deref reset!
                 time-ms os-exit gc-get-heap-size gc-get-total-bytes
                 ; TODO - the following functions are used by
                 ; runtime-core-funcs.mal but should not be exposed to user code
