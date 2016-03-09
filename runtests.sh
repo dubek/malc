@@ -33,7 +33,7 @@ test_one() {
 if [ -z "$1" ] ; then
   alltests="tests/*.mal"
 else
-  alltests=($1)
+  alltests="$@"
 fi
 
 tests=0
