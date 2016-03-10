@@ -8,6 +8,8 @@
 ;; EXPECTED: 33
 (println (get hm :z))
 ;; EXPECTED: nil
+(println (get nil :z))
+;; EXPECTED: nil
 
 (println (contains? hm :b))
 ;; EXPECTED: true
@@ -32,6 +34,8 @@
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 (println (dissoc hm :a :z :c))
 ;; EXPECTED: {:b 22}
+(println (dissoc hm :a :c :b))
+;; EXPECTED: {}
 (println hm)
 ;; EXPECTED: {:a 11 :b 22 :c 33}
 

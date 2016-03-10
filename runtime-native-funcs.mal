@@ -56,6 +56,9 @@
 (defnativefn = equal_Q [a b])
 (defnativefn _pr_str_one _pr_str_one [obj readable])
 (defnativefn deref deref [atm])
+(defnativefn contains? contains_Q [hm key])
+(defnativefn get get [hm key])
+(defnativefn keys keys [hm])
 
 ;;
 ;; Mal object constructors
@@ -98,9 +101,25 @@
     (equal_elementarray_content? (_get_len a) a b 0)
     false))
 
+(defnativefn _hashmap_equal_one_val? _hashmap_equal_one_val_Q [a b key]
+  (if (contains? b key)
+    (= (get a key) (get b key))
+    false))
+
+(defnativefn _hashmap_equal_vals? _hashmap_equal_vals_Q [a b keys_list len index]
+  (if (>= index len)
+    true
+    (if (_hashmap_equal_one_val? a b (_get_elementarray_item keys_list index))
+      (_hashmap_equal_vals? a b keys_list len (+ 1 index))
+      false)))
+
+(defnativefn _hashmap_equal_keys? _hashmap_equal_keys_Q [a b keys_a keys_b]
+  (if (_integer_equal? (_get_len keys_a) (_get_len keys_b))
+    (_hashmap_equal_vals? a b keys_a (_get_len keys_a) 0)
+    false))
+
 (defnativefn hashmap_equal? _hashmap_equal_Q [a b]
-  ; TODO implement hashmap equality
-  false)
+  (_hashmap_equal_keys? a b (keys a) (keys b)))
 
 (defnativefn = equal_Q [a b]
   (cond
@@ -185,7 +204,7 @@
 
 (defnativefn dissoc1 dissoc1 [hm key]
   (if (contains? hm key)
-    (dissoc1-helper hm key 0 [])
+    (dissoc1-helper hm key 0 {})
     hm))
 
 (defnativefn assoc1 assoc1 [hm key val]

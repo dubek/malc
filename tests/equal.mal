@@ -62,3 +62,19 @@
 ;; EXPECTED: true
 (println (= [1 2 (list 3 4 [5 6])] (list 1 2 [3 4 (list 5 6)])))
 ;; EXPECTED: true
+
+;; Hash-map equality
+(println (= {} (hash-map)))
+;; EXPECTED: true
+(println (= {:a 1 :b 2 :c 3} {:c 3 :a 1 :b 2}))
+;; EXPECTED: true
+(println (= {:a 1 :b 2} {:a 1 :b 99}))
+;; EXPECTED: false
+(println (= {:a 1 :b 2} {:a 1 :b 2 :c 3}))
+;; EXPECTED: false
+(println (= {:a 1 :b 2 :c 3} {:a 1 :b 2}))
+;; EXPECTED: false
+(println (= {:a [44 55] :b 2} {:a (list 44 55) :b 2}))
+;; EXPECTED: true
+(println (= {:a {:x 44} :b 2} {:a (hash-map :x 44) :b 2}))
+;; EXPECTED: true
