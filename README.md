@@ -188,6 +188,63 @@ The following variables were added:
   `main()` entry function.
 
 
+## Bonus: Compiling the Mal interpreter
+
+Compilers are nice, but what if you want an interpreter with interactive REPL?
+No worries; the Mal project comes with a Mal interepreter implemented in Mal.
+We can compile it with malc to get an standalone executable interpreter.
+
+First, clone the Mal project and go into its `mal` sub-directory:
+
+    git clone https://github.com/kanaka/mal
+    cd mal/mal
+
+Compile the interpreter (I chose stepA here):
+
+    /path-to-malc/malc -v -c stepA_mal.mal
+
+The executable `stepA_mal` is ready; you can run it to get an interactive REPL:
+
+    $ ./stepA_mal
+    Mal [malc-mal]
+    mal-user> (+ 4 5)
+    9
+    mal-user> *host-language*
+    "malc-mal"
+
+You can also run the extensive tests that come with the Mal project (for all
+steps):
+
+    $ ../runtest.py ../tests/stepA_mal.mal -- ./stepA_mal
+    ...
+
+    Testing readline
+    TEST: (readline "mal-user> ") -> ['',*] -> SUCCESS
+    TEST: "hello" -> ['',"\"hello\""] -> SUCCESS
+
+    ...
+
+    Testing metadata on mal functions
+    TEST: (meta (fn* (a) a)) -> ['',nil] -> SUCCESS
+    TEST: (meta (with-meta (fn* (a) a) {"b" 1})) -> ['',{"b" 1}] -> SUCCESS
+    TEST: (meta (with-meta (fn* (a) a) "abc")) -> ['',"abc"] -> SUCCESS
+    TEST: (def! l-wm (with-meta (fn* (a) a) {"b" 2})) -> ['',*] -> SUCCESS
+    TEST: (meta l-wm) -> ['',{"b" 2}] -> SUCCESS
+
+    ...
+
+    TEST RESULTS (for ../tests/stepA_mal.mal):
+        0: soft failing tests
+        0: failing tests
+       81: passing tests
+       81: total tests
+
+And run the interpreter performance benchmark:
+
+    $ ./stepA_mal ../tests/perf3.mal
+    iters/s: 77
+
+
 ## What's missing?
 
 A lot. See the [TODO list](doc/TODO.md).
