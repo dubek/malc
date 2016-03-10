@@ -1,0 +1,10 @@
+(def! a [1 2 3])
+(prn (meta a))
+;; EXPECTED: nil
+(def! a1 ^{:k1 1234} a)
+(prn a1)
+;; EXPECTED: [1 2 3]
+(prn (meta a1))
+;; EXPECTED: {:k1 1234}
+(prn (meta a))
+;; EXPECTED: nil

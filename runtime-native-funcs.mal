@@ -37,6 +37,9 @@
 (defnativefn native-func-apply-list mal_native_func_apply_list [fn argslist])
 (defnativefn func-apply-list mal_func_apply_list [fn argslist])
 
+(defnativefn meta mal_get_meta [obj])
+(defnativefn with-meta mal_with_meta [obj new_meta])
+
 (defnativefn time-ms mal_time_ms [])
 (defnativefn os-exit mal_os_exit [exitcode])
 (defnativefn gc-get-heap-size mal_gc_get_heap_size [])
@@ -344,15 +347,6 @@
     (vector? obj) (if (empty? obj) nil (_vector_to_list obj))
     (string? obj) (if (= 0 (_get_len obj)) nil (_seq_string obj))
     :else         (throw "illegal type for seq")))
-
-;;
-;; meta - stubs for now (TODO real meta implementation)
-;;
-(defnativefn meta meta [obj]
-  nil)
-
-(defnativefn with-meta with_meta [obj new-meta]
-  obj)
 
 ;;
 ;; pr_str / str

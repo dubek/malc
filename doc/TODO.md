@@ -3,7 +3,6 @@
 Functions missing from the Mal core:
 
 - defmacro! / macroexpand
-- meta / with-meta
 - eval (requires JIT compiling?)
 
 Compiler features:

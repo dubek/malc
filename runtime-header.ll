@@ -30,8 +30,9 @@ declare i64 @GC_get_total_bytes()
 
 ; i32 - obj_type
 ; i32 - len (bytes/elements)
+; %mal_obj - meta object
 ; i8* - points to data
-%mal_obj_header_t = type { i32, i32, i8* }
+%mal_obj_header_t = type { i32, i32, %mal_obj, i8* }
 
 ;
 ; Exception handling
@@ -125,11 +126,26 @@ define private %mal_obj @mal_get_len(%mal_obj %obj) {
   ret %mal_obj %3
 }
 
-define private i8* @mal_get_array_ptr_i8(%mal_obj %obj) {
+define private %mal_obj @mal_get_meta(%mal_obj %obj) {
   %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  %3 = load %mal_obj* %2
+  ret %mal_obj %3
+}
+
+define private i8* @mal_get_array_ptr_i8(%mal_obj %obj) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 3
   %3 = load i8** %2
   ret i8* %3
+}
+
+define private %mal_obj* @mal_get_array_ptr_mal_obj(%mal_obj %obj) {
+  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
+  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 3
+  %3 = bitcast i8** %2 to %mal_obj**
+  %4 = load %mal_obj** %3
+  ret %mal_obj* %4
 }
 
 define private %mal_obj @mal_integer_equal_q(%mal_obj %a, %mal_obj %b) {
@@ -205,11 +221,14 @@ define private %mal_obj_header_t* @alloc_obj_header() {
 define private %mal_obj @mal_make_bytearray_obj(i32 %objtype, i32 %len_bytes, i8* %bytes) {
   %1 = call %mal_obj_header_t* @alloc_obj_header()
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
-  store i32 %objtype, i32* %2
+  store i32 %objtype, i32* %2            ; store type
   %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
-  store i32 %len_bytes, i32* %3
+  store i32 %len_bytes, i32* %3          ; store len
   %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
-  store i8* %bytes, i8** %4
+  %nil_obj = call %mal_obj @make_nil()
+  store %mal_obj %nil_obj, %mal_obj* %4  ; store meta
+  %5 = getelementptr %mal_obj_header_t* %1, i32 0, i32 3
+  store i8* %bytes, i8** %5              ; store pointer to byte array (string)
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
 }
@@ -228,24 +247,18 @@ define private %mal_obj @mal_empty_bytearray_obj(%mal_obj %objtype, %mal_obj %le
 }
 
 define private %mal_obj @mal_set_bytearray_range(%mal_obj %dstobj, %mal_obj %offset, %mal_obj %len, %mal_obj %srcobj) {
-  %dst_hdr_ptr = inttoptr %mal_obj %dstobj to %mal_obj_header_t*
-  %dst_buf_ptr = getelementptr %mal_obj_header_t* %dst_hdr_ptr, i32 0, i32 2
-  %dst_buf = load i8** %dst_buf_ptr
+  %dst_buf = call i8* @mal_get_array_ptr_i8(%mal_obj %dstobj)
   %offset.i64 = call i64 @mal_integer_to_raw(%mal_obj %offset)
   %len.i64 = call i64 @mal_integer_to_raw(%mal_obj %len)
   %len.i32 = trunc i64 %len.i64 to i32
-  %src_hdr_ptr = inttoptr %mal_obj %srcobj to %mal_obj_header_t*
-  %src_buf_ptr = getelementptr %mal_obj_header_t* %src_hdr_ptr, i32 0, i32 2
-  %src_buf = load i8** %src_buf_ptr
+  %src_buf = call i8* @mal_get_array_ptr_i8(%mal_obj %srcobj)
   %dst_buf_offset_ptr = getelementptr i8* %dst_buf, i64 %offset.i64
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* %dst_buf_offset_ptr, i8* %src_buf, i32 %len.i32, i32 0, i1 0)
   ret %mal_obj %dstobj
 }
 
 define private %mal_obj @mal_set_bytearray_char(%mal_obj %dstobj, %mal_obj %offset, %mal_obj %ascii_value) {
-  %dst_hdr_ptr = inttoptr %mal_obj %dstobj to %mal_obj_header_t*
-  %dst_buf_ptr = getelementptr %mal_obj_header_t* %dst_hdr_ptr, i32 0, i32 2
-  %dst_buf = load i8** %dst_buf_ptr
+  %dst_buf = call i8* @mal_get_array_ptr_i8(%mal_obj %dstobj)
   %offset.i64 = call i64 @mal_integer_to_raw(%mal_obj %offset)
   %dst_buf_offset_ptr = getelementptr i8* %dst_buf, i64 %offset.i64
   %ascii_value.i64 = call i64 @mal_integer_to_raw(%mal_obj %ascii_value)
@@ -255,9 +268,7 @@ define private %mal_obj @mal_set_bytearray_char(%mal_obj %dstobj, %mal_obj %offs
 }
 
 define private %mal_obj @mal_get_bytearray_char(%mal_obj %dstobj, %mal_obj %offset) {
-  %dst_hdr_ptr = inttoptr %mal_obj %dstobj to %mal_obj_header_t*
-  %dst_buf_ptr = getelementptr %mal_obj_header_t* %dst_hdr_ptr, i32 0, i32 2
-  %dst_buf = load i8** %dst_buf_ptr
+  %dst_buf = call i8* @mal_get_array_ptr_i8(%mal_obj %dstobj)
   %offset.i64 = call i64 @mal_integer_to_raw(%mal_obj %offset)
   %dst_buf_offset_ptr = getelementptr i8* %dst_buf, i64 %offset.i64
   %ascii_value = load i8* %dst_buf_offset_ptr
@@ -288,16 +299,9 @@ define private %mal_obj @mal_integer_to_string(%mal_obj %intobj) {
 
 ; Compare two bytearrays. Length must be equal.
 define private %mal_obj @mal_bytearray_equal_q(%mal_obj %a, %mal_obj %b) {
-  %a_hdr_ptr = inttoptr %mal_obj %a to %mal_obj_header_t*
-  %a_len_ptr = getelementptr %mal_obj_header_t* %a_hdr_ptr, i32 0, i32 1
-  %a_len = load i32* %a_len_ptr
-  %a_buf_ptr = getelementptr %mal_obj_header_t* %a_hdr_ptr, i32 0, i32 2
-  %a_buf = load i8** %a_buf_ptr
-
-  %b_hdr_ptr = inttoptr %mal_obj %b to %mal_obj_header_t*
-  %b_buf_ptr = getelementptr %mal_obj_header_t* %b_hdr_ptr, i32 0, i32 2
-  %b_buf = load i8** %b_buf_ptr
-
+  %a_len = call i32 @mal_get_len_i32(%mal_obj %a)
+  %a_buf = call i8* @mal_get_array_ptr_i8(%mal_obj %a)
+  %b_buf = call i8* @mal_get_array_ptr_i8(%mal_obj %b)
   %res = call i32 @memcmp(i8* %a_buf, i8* %b_buf, i32 %a_len)
   %is_equal = icmp eq i32 %res, 0
   %mal_bool_res = call %mal_obj @bool_to_mal(i1 %is_equal)
@@ -315,38 +319,35 @@ define private %mal_obj @mal_make_elementarray_obj(%mal_obj %objtype, %mal_obj %
   %1 = call %mal_obj_header_t* @alloc_obj_header()
 
   %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 0
-  store i32 %objtype.i32, i32* %2
+  store i32 %objtype.i32, i32* %2       ; store type
   %3 = getelementptr %mal_obj_header_t* %1, i32 0, i32 1
-  store i32 %len_elements.i32, i32* %3
+  store i32 %len_elements.i32, i32* %3  ; store len
+  %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
+  %nil_obj = call %mal_obj @make_nil()
+  store %mal_obj %nil_obj, %mal_obj* %4 ; store meta
 
   %elementarrayptr = call i8* @GC_malloc(i64 %bytes)
-  %4 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
-  store i8* %elementarrayptr, i8** %4
+  %5 = getelementptr %mal_obj_header_t* %1, i32 0, i32 3
+  store i8* %elementarrayptr, i8** %5   ; store pointer to %mal_obj array
 
   %new_obj = ptrtoint %mal_obj_header_t* %1 to %mal_obj
   ret %mal_obj %new_obj
 }
 
 define private %mal_obj @mal_set_elementarray_item(%mal_obj %obj, %mal_obj %item_index, %mal_obj %new_item) {
-  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
-  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
-  %3 = bitcast i8** %2 to %mal_obj**
-  %4 = load %mal_obj** %3
-  %5 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
-  %6 = getelementptr %mal_obj* %4, i64 %5
-  store %mal_obj %new_item, %mal_obj* %6
+  %elementarray = call %mal_obj* @mal_get_array_ptr_mal_obj(%mal_obj %obj)
+  %index_i64 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
+  %ptr_to_element = getelementptr %mal_obj* %elementarray, i64 %index_i64
+  store %mal_obj %new_item, %mal_obj* %ptr_to_element
   ret %mal_obj %obj
 }
 
 define private %mal_obj @mal_get_elementarray_item(%mal_obj %obj, %mal_obj %item_index) {
-  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
-  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
-  %3 = bitcast i8** %2 to %mal_obj**
-  %4 = load %mal_obj** %3
-  %5 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
-  %6 = getelementptr %mal_obj* %4, i64 %5
-  %7 = load %mal_obj* %6
-  ret %mal_obj %7
+  %elementarray = call %mal_obj* @mal_get_array_ptr_mal_obj(%mal_obj %obj)
+  %index_i64 = call i64 @mal_integer_to_raw(%mal_obj %item_index)
+  %ptr_to_element = getelementptr %mal_obj* %elementarray, i64 %index_i64
+  %res_obj = load %mal_obj* %ptr_to_element
+  ret %mal_obj %res_obj
 }
 
 define private %mal_obj @mal_concat_elementarrays(%mal_obj %objtype, %mal_obj %a, %mal_obj %b) {
@@ -433,6 +434,20 @@ define private %mal_obj @mal_func_apply_list(%mal_obj %fn, %mal_obj %argslist) {
   ret %mal_obj %result
 }
 
+define private %mal_obj @mal_with_meta(%mal_obj %obj, %mal_obj %new_meta) {
+  %new_obj_header = call %mal_obj_header_t* @alloc_obj_header()
+  %new_obj_i8_ptr = bitcast %mal_obj_header_t* %new_obj_header to i8*
+  %obj_i8_ptr = inttoptr %mal_obj %obj to i8*
+  %mal_obj_header_temp = getelementptr %mal_obj_header_t* null, i64 1
+  %mal_obj_header_t_size = ptrtoint %mal_obj_header_t* %mal_obj_header_temp to i64
+  %mal_obj_header_t_size_i32 = trunc i64 %mal_obj_header_t_size to i32
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %new_obj_i8_ptr, i8* %obj_i8_ptr, i32 %mal_obj_header_t_size_i32, i32 0, i1 0)
+  %meta_field_ptr = getelementptr %mal_obj_header_t* %new_obj_header, i32 0, i32 2
+  store %mal_obj %new_meta, %mal_obj* %meta_field_ptr
+  %new_obj = ptrtoint %mal_obj_header_t* %new_obj_header to %mal_obj
+  ret %mal_obj %new_obj
+}
+
 define private %mal_obj @mal_add(%mal_obj %a, %mal_obj %b) {
   %1 = call i64 @mal_integer_to_raw(%mal_obj %a)
   %2 = call i64 @mal_integer_to_raw(%mal_obj %b)
@@ -500,9 +515,7 @@ define private %mal_obj @mal_gc_get_total_bytes() {
 }
 
 define private %mal_obj @mal_readline(%mal_obj %prompt) {
-  %promptobj = inttoptr %mal_obj %prompt to %mal_obj_header_t*
-  %promptstrptr = getelementptr %mal_obj_header_t* %promptobj, i32 0, i32 2
-  %promptstr = load i8** %promptstrptr
+  %promptstr = call i8* @mal_get_array_ptr_i8(%mal_obj %prompt)
   %line = call i8* @readline(i8* %promptstr)
   %islinenull = icmp eq i8* %line, null
   br i1 %islinenull, label %GotEof, label %GotString
@@ -522,9 +535,7 @@ GotString:
 define private %mal_obj @mal_slurp(%mal_obj %filename) {
   ; Get the filename
   %st = alloca %struct.stat, align 8
-  %filenameobj = inttoptr %mal_obj %filename to %mal_obj_header_t*
-  %filenamestrptr = getelementptr %mal_obj_header_t* %filenameobj, i32 0, i32 2
-  %filenamestr = load i8** %filenamestrptr
+  %filenamestr = call i8* @mal_get_array_ptr_i8(%mal_obj %filename)
   ; Get the file size in bytes
   call i32 @stat(i8* %filenamestr, %struct.stat* %st)
   %sizeptr = getelementptr inbounds %struct.stat* %st, i32 0, i32 8
@@ -544,12 +555,10 @@ define private %mal_obj @mal_slurp(%mal_obj %filename) {
 }
 
 define private %mal_obj @mal_printbytearray(%mal_obj %obj) {
-  %1 = inttoptr %mal_obj %obj to %mal_obj_header_t*
-  %2 = getelementptr %mal_obj_header_t* %1, i32 0, i32 2
-  %3 = load i8** %2
-  call i32 @puts(i8* %3)
-  %5 = call %mal_obj @make_nil()
-  ret %mal_obj %5
+  %buf = call i8* @mal_get_array_ptr_i8(%mal_obj %obj)
+  call i32 @puts(i8* %buf)
+  %nil_obj = call %mal_obj @make_nil()
+  ret %mal_obj %nil_obj
 }
 
 define private %mal_obj @mal_throw(%mal_obj %obj) {

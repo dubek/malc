@@ -38,6 +38,7 @@ pointer to a `%mal_obj_header_t` struct (16 bytes struct):
 struct %mal_obj_header_t {
   uint32_t type;
   uint32_t len;
+  %mal_obj meta;
   void* data;
 }
 ```
