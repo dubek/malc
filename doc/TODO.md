@@ -2,7 +2,6 @@
 
 Functions missing from the Mal core:
 
-- defmacro! / macroexpand
 - eval (requires JIT compiling?)
 
 Compiler features:

@@ -1,4 +1,6 @@
 (load-file "utils.mal")
+(load-file "macros-eval.mal")
+(def! *macros-eval-env* (new-env repl-env))
 
 (def! *malc-path* (atom "."))
 (def! *compile-mode* (atom "release"))
@@ -351,6 +353,16 @@
   (fn* [result ast env-type]
     (let* [a0 (first ast)]
       (cond
+        (= 'defmacro! a0)
+          (do
+            (EVAL ast *macros-eval-env*)
+            (if result
+              (compile-nil result)
+              (line "")))
+
+        (= 'macroexpand a0)
+          (compile-literal result (expand-macros (nth ast 1)) env-type)
+
         (= 'load-file a0)
           (compile-load-file result (nth ast 1) env-type)
 
@@ -548,16 +560,29 @@
       (keyword? ast) true
       :else          false)))
 
-(def! compile
+(def! compile-without-macro-expand
   (fn* [result ast env-type]
     (append-lines
-      (debug-line "compile" ast)
       (cond
         (symbol? ast)  (compile-variable result ast env-type)
         (literal? ast) (compile-literal result ast env-type)
         (list? ast)    (compile-list result ast env-type)
         (vector? ast)  (compile-vector result ast env-type)
         (map? ast)     (compile-hash-map result ast env-type)))))
+
+(def! expand-macros
+  (fn* [ast]
+    (if (list? ast)
+      (MACROEXPAND ast *macros-eval-env*)
+      ast)))
+
+(def! compile
+  (fn* [result ast env-type]
+    (let* [exp-ast (expand-macros ast)]
+    (append-lines
+      (debug-line "compile     ast=" ast)
+      (debug-line "compile exp-ast=" exp-ast)
+      (compile-without-macro-expand result exp-ast env-type)))))
 
 (def! define-mal-func
   (fn* [name body]

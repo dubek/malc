@@ -254,3 +254,8 @@ A lot. See the [TODO list](doc/TODO.md).
 
 malc (make-a-lisp compiler) is licensed under the MPL 2.0 (Mozilla Public
 License 2.0). See LICENSE.txt for more details.
+
+malc includes a whole Mal interpreter written in Mal. The files
+`macros-eval.mal`, `macros-env.mal` and `macros-core.mal` are taken from the
+[Mal project](https://github.com/kanaka/mal), Copyright (C) 2015 Joel Martin,
+licensed under the MPL 2.0 (Mozilla Public License 2.0).

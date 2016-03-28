@@ -2,16 +2,11 @@
 
 This directory includes a copy of the code of the Ruby implementation of Mal
 interpreter written by Joel Martin. It is copied from the [`ruby` directory of
-the Mal project](https://github.com/kanaka/mal/tree/master/ruby).
+the Mal project](https://github.com/kanaka/mal/tree/master/ruby).  It is used
+for easy bootstrapping of malc.
 
-The interpreter is used to run malc, which is itself written in Mal.
-
-Supposedly you could use any mal interpreter implementation from the [Mal
-project](https://github.com/kanaka/mal).  However, as of February 2016 there
-are no string operations in Mal, and we utilize the Ruby implementation duck
-typing to use the `count` function to measure strings length.  Once a proper
-string handling functions are added to all Mal implementations, we could use
-any Mal implementation to run malc.
+You can use any other Mal interepreter by setting the `MAL_IMPL` environment
+variable during bootstrap.
 
 ## License
 
