@@ -332,6 +332,9 @@
   (fn* [result ast env-type]
     (let* [a0 (first ast)]
       (cond
+        (empty? ast)
+          (compile-literal-list result ast env-type)
+
         (= 'defmacro! a0)
           (do
             (EVAL ast *macros-eval-env*)
