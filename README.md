@@ -250,6 +250,15 @@ And run the interpreter performance benchmark:
 A lot. See the [TODO list](doc/TODO.md).
 
 
+## Related reading
+
+* [Structure and Interpretation of Computer Programs: 5.5 - Compilation](https://mitpress.mit.edu/sicp/full-text/book/book-Z-H-35.html) by Harold Abelson and Gerald Jay Sussman with Julie Sussman
+* [LLVM Language Reference Manual](http://llvm.org/docs/LangRef.html)
+* [Exception Handling](http://llvm.org/docs/ExceptionHandling.html)
+* [Mapping High-Level Constructs to LLVM IR](http://llvm.lyngvig.org/Articles/Mapping-High-Level-Constructs-to-LLVM-IR) by Mikael Lyngvig
+* [Boehm-Demers-Weiser Garbage Collector](http://www.hboehm.info/gc/)
+
+
 ## License
 
 malc (make-a-lisp compiler) is licensed under the MPL 2.0 (Mozilla Public
