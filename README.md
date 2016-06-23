@@ -53,14 +53,14 @@ This will create the `mal-to-llvm` executable, which is used by the `malc`
 wrapper script.  Now malc is ready to use.
 
 By default, `bootstrap.sh` uses the bundled Ruby implementation of the Mal
-interpreter.  Use the `MAL_IMPL` (path to the Mal implementation) and `MAL_PREFIX`
-(program which runs the Mal implementation) environment variables to instruct
-`bootstrap.sh` to use another Mal interpreter.  For example:
+interpreter.  To use another implementation during bootstrapping, set the
+`MAL_IMPL` environment variable to the path of the Mal implementation
+executable.  For example:
 
-    MAL_PREFIX=python MAL_IMPL=../mal/python/stepA_mal.py ./bootstrap.sh
+    # Bootstrap using the Python implementation:
+    MAL_IMPL=../mal/python/run ./bootstrap.sh
 
-For compiled Mal interpreters just set `MAL_IMPL`; for example:
-
+    # Bootstrap using the OCaml implementation:
     MAL_IMPL=../mal/ocaml/stepA_mal ./bootstrap.sh
 
 
@@ -124,17 +124,16 @@ By default malc uses the `mal-to-llvm` executable which is created during the
 boostrapping step.  Since `mal-to-llvm` is written in Mal, you may chooose to
 run it with any Mal interpreter you want, instead of running the compiled
 (bootstrapped) executable. (At the time of writing there are
-[49](https://github.com/kanaka/mal) Mal interpreter implementations!)
+[56](https://github.com/kanaka/mal) Mal interpreter implementations!)
 
-Use the `MAL_IMPL` (path to the Mal implementation) and `MAL_PREFIX`
-(program which runs the Mal implementation) environment variables to instruct
-malc to use another Mal interpreter.  For example:
+Use the `MAL_IMPL` (path to the Mal implementation) environment variable to
+instruct malc to use another Mal interpreter.  For example:
 
-    MAL_PREFIX=python MAL_IMPL=../mal/python/stepA_mal.py ./malc -c myprogram.mal
+    # Run malc using the Python implementation:
+    MAL_IMPL=../mal/python/run ./malc -c myprogram.mal
 
-For compiled Mal interpreters just set `MAL_IMPL`; for example:
-
-    MAL_IMPL=../mal/ocaml/stepA_mal ./malc -c myprogram.mal
+    # Run malc using the OCaml implementation:
+    MAL_IMPL=../mal/ocaml/run ./malc -c myprogram.mal
 
 At this point there's a limitation - when malc is invoked using a Mal
 interpreter it must be invoked from the malc project root directory.

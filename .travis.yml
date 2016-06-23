@@ -9,4 +9,4 @@ addons:
 script:
   - ./bootstrap.sh
   - ./runtests.sh
-  #- ./runperf.sh
+  - ./runperf.sh

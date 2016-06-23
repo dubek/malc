@@ -17,7 +17,7 @@ EOF
 }
 
 log() {
-  [ "$verbose" == yes ] && echo "malc: $@"
+  [ "$verbose" == yes ] && echo "malc: $@" || true
 }
 
 keep_llvm=no
@@ -74,10 +74,9 @@ log "Intermediate LLVM IR file: ${outfile}.ll"
 # Compile mal to LLVM IR
 log "Compiling Mal program to LLVM IR"
 if [ -n "$MAL_IMPL" ] ; then
-  MAL_PREFIX=${MAL_PREFIX:-}
   MAL_IMPL=$(readlink -f ${MAL_IMPL})
-  log "Using Mal interpreter: ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/mal-to-llvm.mal"
-  ${MAL_PREFIX:+${MAL_PREFIX} }${MAL_IMPL} $bindir/mal-to-llvm.mal $compile_mode $bindir $srcfile > "${outfile}.ll"
+  log "Using Mal interpreter: ${MAL_IMPL} $bindir/mal-to-llvm.mal"
+  ${MAL_IMPL} $bindir/mal-to-llvm.mal $compile_mode $bindir $srcfile > "${outfile}.ll"
 else
   log "Using binary compiler: $bindir/mal-to-llvm"
   $bindir/mal-to-llvm $compile_mode $bindir $srcfile > "${outfile}.ll"
