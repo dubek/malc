@@ -4,13 +4,15 @@ addons:
   apt:
     sources:
       - llvm-toolchain-precise-3.8
+      - ubuntu-toolchain-r-test
     packages:
+      - gcc-4.9
       - libgc-dev
       - libreadline6
       - llvm-3.8
       - llvm-3.8-runtime
       - libllvm3.8
-      - libstdc++6-4.9
+      #- libstdc++6-4.9
 
 script:
   - ./bootstrap.sh
