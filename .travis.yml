@@ -2,9 +2,15 @@ sudo: false
 language: c
 addons:
   apt:
+    sources:
+      - llvm-toolchain-precise-3.8
     packages:
       - libgc-dev
       - libreadline6
+      - llvm-3.8
+      - llvm-3.8-runtime
+      - libllvm3.8
+      - libstdc++6-4.9
 
 script:
   - ./bootstrap.sh
