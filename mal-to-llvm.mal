@@ -118,7 +118,7 @@
   (fn* [result type-num body]
     (let* [str-len (string/length body)
            str-global (add-string body)]
-      (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " str-len ", i8* getelementptr([" (inc str-len) " x i8]* " str-global ", i32 0, i32 0))"))))
+      (line result "= call %mal_obj @mal_make_bytearray_obj(i32 " type-num ", i32 " str-len ", i8* getelementptr([" (inc str-len) " x i8], [" (inc str-len) " x i8]* " str-global ", i32 0, i32 0))"))))
 
 (def! native-func?
   (fn* [funcname]
@@ -262,7 +262,7 @@
         (line "store %mal_obj" tmp-false-result ", %mal_obj*" result-stack-reg)
         (line "br label" (str "%" after-if-label))
         (line-label after-if-label)
-        (line-assign result "load %mal_obj*" result-stack-reg)))))
+        (line-assign result "load %mal_obj, %mal_obj*" result-stack-reg)))))
 
 (def! compile-try-catch
   (fn* [result ast env-type]
@@ -294,9 +294,7 @@
           (line "store %mal_obj" try-result ", %mal_obj*" result-stack-reg)
           (line "br label" (str "%" after-try-label))
           (line-label catch-label)
-          (line-assign landingpad-exn-reg "landingpad {i8*,i32}"
-                       "personality i8* bitcast (i32 (...)* @__gxx_personality_v0 to i8*)"
-                       "catch i8* null")
+          (line-assign landingpad-exn-reg "landingpad {i8*,i32} catch i8* null")
           (line-assign catch-exn-reg "call %mal_obj @mal_get_exception_from_landing_pad({i8*,i32}" landingpad-exn-reg ")")
           (compile-literal catch-exn-var-reg catch-exn-var-name env-type)
           (line-assign catch-env-reg "call %mal_obj @new_singlevar_env(%mal_obj %env, %mal_obj" catch-exn-var-reg ", %mal_obj" catch-exn-reg ")")
@@ -304,7 +302,7 @@
           (line "store %mal_obj" catch-result ", %mal_obj*" result-stack-reg)
           (line "br label" (str "%" after-try-label))
           (line-label after-try-label)
-          (line-assign result "load %mal_obj*" result-stack-reg))))))
+          (line-assign result "load %mal_obj, %mal_obj*" result-stack-reg))))))
 
 ; AST manipulation: rewrite let* as an anonymous fn* with def! inside
 ; Converts (let* [x 8 y (+ x 2)] (body ...))
@@ -565,7 +563,7 @@
     (append-lines
       (line "")
       (line "")
-      (line "define" (linkage-type) "%mal_obj" name "(%mal_obj %env) {")
+      (line "define" (linkage-type) "%mal_obj" name "(%mal_obj %env) personality i8* bitcast (i32 (...)* @__gxx_personality_v0 to i8*) {")
       (compile "%funcresult" body 'mal-env)
       (line "ret %mal_obj %funcresult")
       (line "} ; end of function" name)
