@@ -16,7 +16,9 @@
         (all? (rest lst))
         false))))
 
-(def! all-values [nil true false 'abc "" "abc" :abc -123 0 123 '() '(1 2 3) [] [1 2 3] {} {"a" "b" "c" "d"}])
+(def! add1 (fn* [x] (+ x 1)))
+
+(def! all-values [nil true false 'abc "" "abc" :abc -123 0 123 '() '(1 2 3) [] [1 2 3] {} {"a" "b" "c" "d"} + add1])
 
 (def! check
   (fn* (pred expected-true-values)
@@ -44,4 +46,6 @@
 (println (check vector? [[] [1 2 3]]))
 ;; EXPECTED: true
 (println (check map? [{} {"a" "b" "c" "d"}]))
+;; EXPECTED: true
+(println (check fn? [+ add1]))
 ;; EXPECTED: true

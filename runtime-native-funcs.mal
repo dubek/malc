@@ -82,8 +82,10 @@
 (defnativefn vector?  vector_Q  [obj] (_integer_equal? 34 (_get_type obj)))
 (defnativefn map?     map_Q     [obj] (_integer_equal? 35 (_get_type obj)))
 (defnativefn atom?    atom_Q    [obj] (_integer_equal? 49 (_get_type obj)))
+
 (defnativefn function? function_Q [obj] (_integer_equal? 66 (_get_type obj)))
 (defnativefn native-function? native_function_Q [obj] (_integer_equal? 67 (_get_type obj)))
+(defnativefn fn? fn_Q [obj] (if (native-function? obj) true (function? obj)))
 
 (defnativefn sequential? sequential_Q [obj]
   (if (list? obj) true (vector? obj)))
@@ -528,7 +530,7 @@
 (exportnativefn =
                 throw
                 nil? true? false? string?
-                symbol symbol? keyword keyword? number?
+                symbol symbol? keyword keyword? number? fn?
                 readline slurp
                 < <= > >= + - * /
                 list? vector? map? get contains? keys vals
