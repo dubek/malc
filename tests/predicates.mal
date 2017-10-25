@@ -37,6 +37,8 @@
 ;; EXPECTED: true
 (println (check keyword? [:abc]))
 ;; EXPECTED: true
+(println (check number? [-123 0 123]))
+;; EXPECTED: true
 (println (check list? ['() '(1 2 3)]))
 ;; EXPECTED: true
 (println (check vector? [[] [1 2 3]]))
