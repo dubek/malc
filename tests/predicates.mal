@@ -1,0 +1,45 @@
+(def! count-true
+  (fn* (lst)
+    (let* [helper (fn* (lst c)
+                    (if (= 0 (count lst))
+                      c
+                      (if (first lst)
+                        (helper (rest lst) (+ c 1))
+                        (helper (rest lst) c))))]
+      (helper lst 0))))
+
+(def! all?
+  (fn* (lst)
+    (if (= 0 (count lst))
+      true
+      (if (first lst)
+        (all? (rest lst))
+        false))))
+
+(def! all-values [nil true false 'abc "" "abc" :abc -123 0 123 '() '(1 2 3) [] [1 2 3] {} {"a" "b" "c" "d"}])
+
+(def! check
+  (fn* (pred expected-true-values)
+    (let* [expected-ok (map pred expected-true-values)]
+      (if (all? expected-ok)
+        (let* [all-values-ok (map pred all-values)]
+          (= (count-true all-values-ok) (count expected-true-values)))))))
+
+(println (check nil? [nil]))
+;; EXPECTED: true
+(println (check true? [true]))
+;; EXPECTED: true
+(println (check false? [false]))
+;; EXPECTED: true
+(println (check symbol? ['abc]))
+;; EXPECTED: true
+(println (check string? ["" "abc"]))
+;; EXPECTED: true
+(println (check keyword? [:abc]))
+;; EXPECTED: true
+(println (check list? ['() '(1 2 3)]))
+;; EXPECTED: true
+(println (check vector? [[] [1 2 3]]))
+;; EXPECTED: true
+(println (check map? [{} {"a" "b" "c" "d"}]))
+;; EXPECTED: true
