@@ -92,7 +92,7 @@ llc -filetype=obj "${outfile}.opt.ll" -o "${outfile}.o"
 
 # Link
 log "Linking executable file: ${outfile}"
-gcc -g "${outfile}.o" -lgc -lreadline -lstdc++ -o "${outfile}"
+clang -fuse-ld=lld -g "${outfile}.o" -lgc -lreadline -lstdc++ -o "${outfile}"
 
 # Cleanup
 log "Cleaning up"
