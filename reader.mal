@@ -1,4 +1,4 @@
-; malc is responsible for loading tokenizer.mal before this file
+; mal-to-llvm is responsible for loading tokenizer.mal before this file
 ; (load-file "./tokenizer.mal")
 
 (def! make_reader
