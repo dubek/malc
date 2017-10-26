@@ -18,3 +18,4 @@ script:
   - ./bootstrap.sh
   - ./runtests.sh
   - ./runperf.sh
+  - ./run-mal-tests.sh

@@ -243,6 +243,9 @@ And run the interpreter performance benchmark:
     $ ./stepA_mal ../tests/perf3.mal
     iters/s: 77
 
+The `run-mal-tests.sh` clones the Mal project repository, compiles the Mal
+implementation and runs all the Mal interpreter tests.
+
 
 ## What's missing?
 
