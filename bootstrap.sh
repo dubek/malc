@@ -19,4 +19,18 @@ fi
 log "Compiling mal-to-llvm.mal ..."
 ./malc -v -c mal-to-llvm.mal
 
+log "Sanity check"
+echo '(println "Sanity check" (+ 11 22))' > sanity-check.mal
+unset MAL_IMPL
+./malc -v -c sanity-check.mal
+rm sanity-check.mal
+result=$(./sanity-check)
+rm sanity-check
+if [ "$result" = "Sanity check 33" ] ; then
+  log "Sanity check passed OK"
+else
+  log "Error in sanity check, result was '$result'"
+  exit 2
+fi
+
 log "Done"
