@@ -247,6 +247,29 @@ The `run-mal-tests.sh` clones the Mal project repository, compiles the Mal
 implementation and runs all the Mal interpreter tests.
 
 
+## Using malc from a ready-made Docker image
+
+The public Docker image `dubek/malc-llvm-4.0` has malc installed in /opt/malc
+(also in `$PATH`). For example:
+
+    $ docker run -it --rm dubek/malc-llvm-4.0
+    root@c6cf6e2ec3eb:/# cd tmp
+    root@c6cf6e2ec3eb:/tmp# echo '(prn "test" (+ 23 45))' > test.mal
+    root@c6cf6e2ec3eb:/tmp# malc -v -c test.mal
+    malc: Source file: /tmp/test.mal
+    malc: Compile mode: release
+    malc: Intermediate LLVM IR file: /tmp/test.ll
+    malc: Compiling Mal program to LLVM IR
+    malc: Using binary compiler: /opt/malc/mal-to-llvm
+    malc: Optimizing LLVM IR to: /tmp/test.opt.ll
+    malc: Compiling LLVM IR to object file: /tmp/test.o
+    malc: Linking executable file: /tmp/test
+    malc: Cleaning up
+    malc: Done
+    root@c6cf6e2ec3eb:/tmp# ./test
+    "test" 68
+
+
 ## What's missing?
 
 A lot. See the [TODO list](doc/TODO.md).

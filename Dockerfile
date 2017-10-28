@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
-RUN mkdir -p /malc && \
-    apt-get update && \
+# Install dependencies for building malc
+RUN apt-get update && \
     apt-get install -y llvm-4.0 clang-4.0 lld-4.0 libstdc++-5-dev libgc-dev libreadline6-dev ruby && \
     rm -rf /var/lib/apt/lists/*
 
@@ -13,4 +13,8 @@ RUN update-alternatives --install /usr/bin/llvm-config llvm-config   /usr/lib/ll
     update-alternatives --install /usr/bin/llc         llc           /usr/lib/llvm-4.0/bin/llc           100 && \
     update-alternatives --install /usr/bin/ld.lld      ld.lld        /usr/lib/llvm-4.0/bin/ld.lld        100
 
-WORKDIR /malc
+RUN mkdir -p /opt/malc
+COPY . /opt/malc/
+RUN cd /opt/malc && ./bootstrap.sh
+
+ENV PATH="${PATH}:/opt/malc"
