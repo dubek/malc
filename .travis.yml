@@ -1,21 +1,11 @@
-sudo: false
+sudo: required
+matrix:
+  include:
+    - env: DOCKER_IMAGE=dubek/malc-llvm-4.0
+      services:
+        - docker
 language: c
-addons:
-  apt:
-    sources:
-      - llvm-toolchain-precise-3.8
-      - ubuntu-toolchain-r-test
-    packages:
-      - gcc-4.9
-      - libgc-dev
-      - libreadline6
-      - llvm-3.8
-      - llvm-3.8-runtime
-      - libllvm3.8
-      #- libstdc++6-4.9
-
+before_install:
+  - docker pull $DOCKER_IMAGE
 script:
-  - ./bootstrap.sh
-  - ./runtests.sh
-  - ./runperf.sh
-  - ./run-mal-tests.sh
+  - docker run -it --rm -u $(id -u) -v $(pwd):/mnt $DOCKER_IMAGE sh -c "cd /mnt && ./bootstrap.sh && ./runtests.sh && ./runperf.sh && ./run-mal-tests.sh"
