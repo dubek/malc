@@ -7,5 +7,7 @@ matrix:
 language: c
 before_install:
   - docker pull $DOCKER_IMAGE
+  - mkdir -p external
+  - git clone --depth 1 https://github.com/kanaka/mal.git external/mal
 script:
   - docker run -it --rm -u $(id -u) -v $(pwd):/mnt $DOCKER_IMAGE sh -c "cd /mnt && ./bootstrap.sh && ./runtests.sh && ./runperf.sh && ./run-mal-tests.sh"
