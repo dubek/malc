@@ -4,6 +4,9 @@ matrix:
     - env: DOCKER_IMAGE=dubek/malc-llvm-4.0
       services:
         - docker
+    - env: DOCKER_IMAGE=dubek/malc-llvm-5.0
+      services:
+        - docker
 language: c
 before_install:
   - docker pull $DOCKER_IMAGE
