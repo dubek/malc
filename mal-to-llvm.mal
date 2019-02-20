@@ -374,7 +374,9 @@
           (compile-if result ast env-type)
 
         (= 'try* a0)
-          (compile-try-catch result ast env-type)
+          (if (> (count ast) 2)
+            (compile-try-catch result ast env-type)
+            (compile result (nth ast 1) env-type)) ; catchless try*
 
         (= 'fn* a0)
           (compile-fn result ast env-type)

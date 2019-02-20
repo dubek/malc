@@ -43,3 +43,25 @@
 ;; EXPECTED: 123
 (println (try* (throw 123) (catch e (+ e 456))))
 ;; EXPECTED: 579
+
+;; Testing catchless try* without exception
+(println "Before catchless try*")
+(try* (println "In catchless try*"))
+(println "After catchless try*")
+;; EXPECTED: Before catchless try*
+;; EXPECTED: In catchless try*
+;; EXPECTED: After catchless try*
+
+;; Testing catchless try* with exception
+(println "Before try*")
+(try*
+  (do
+    (println "Before catchless try*")
+    (try* (throw 123))
+    (println "After catchless try* - should not be printed"))
+  (catch* e (println "In catch, e=" e)))
+(println "After try*")
+;; EXPECTED: Before try*
+;; EXPECTED: Before catchless try*
+;; EXPECTED: In catch, e= 123
+;; EXPECTED: After try*
