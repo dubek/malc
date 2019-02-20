@@ -57,7 +57,7 @@
 (def! unescape_string
   (fn* [chars res]
     (if (empty? chars)
-      (throw "Expected '\"'")
+      (throw "Expected '\"', got EOF")
       (if (= '("\"") chars)
         (apply str res)
         (let* [c0 (first chars)]
@@ -85,7 +85,7 @@
   (fn* [rdr end res]
     (let* [token (reader_peek rdr)]
       (if (nil? token)
-        (throw (str "Expected '" end "'"))
+        (throw (str "Expected '" end "', got EOF"))
         (if (= end token)
           res
           (read_sequence_entries rdr end (concat res [(read_form rdr)])))))))
@@ -98,7 +98,7 @@
           (do
             (reader_next rdr) ; skip the closing paren
             lst))
-        (throw (str "Expected '" start "'"))))))
+        (throw (str "Expected '" start "', got EOF"))))))
 
 (def! read_macro
   (fn* [rdr sym]

@@ -31,7 +31,7 @@
 (def! read-string-token
   (fn* [word chars]
     (if (empty? chars)
-      (throw "Expected closing quotes")
+      (throw "Expected closing quotes, got EOF")
       (let* [c0 (first chars)
              rc (rest chars)]
         (cond
