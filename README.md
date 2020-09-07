@@ -51,7 +51,7 @@ Collection shared library (`libgc.so`) and with the readline shared library.
 
 To install the dependencies on Debian/Ubuntu:
 
-    sudo apt install libreadline-dev libgc-dev libstdc++-10-dev llvm clang lld
+    sudo apt install libreadline-dev libgc-dev llvm clang lld
 
 Besides these dependencies, malc needs a working Mal interpreter in order to
 compile itself.  malc comes bundled with the Ruby implementation of the Mal
