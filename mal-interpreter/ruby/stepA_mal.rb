@@ -11,20 +11,39 @@ def READ(str)
 end
 
 # eval
-def pair?(x)
-    return sequential?(x) && x.size > 0
+def starts_with(ast, sym)
+    return ast.is_a?(List) && ast.size == 2 && ast[0] == sym
+end
+
+def qq_loop(ast)
+  acc = List.new []
+  ast.reverse_each do |elt|
+    if starts_with(elt, :"splice-unquote")
+      acc = List.new [:concat, elt[1], acc]
+    else
+      acc = List.new [:cons, quasiquote(elt), acc]
+    end
+  end
+  return acc
 end
 
 def quasiquote(ast)
-    if not pair?(ast)
-        return List.new [:quote, ast]
-    elsif ast[0] == :unquote
-        return ast[1]
-    elsif pair?(ast[0]) && ast[0][0] == :"splice-unquote"
-        return List.new [:concat, ast[0][1], quasiquote(ast.drop(1))]
+  return case ast
+  when List
+    if starts_with(ast, :unquote)
+      ast[1]
     else
-        return List.new [:cons, quasiquote(ast[0]), quasiquote(ast.drop(1))]
+      qq_loop(ast)
     end
+  when Vector
+    List.new [:vec, qq_loop(ast)]
+  when Hash
+    List.new [:quote, ast]
+  when Symbol
+    List.new [:quote, ast]
+  else
+    ast
+  end
 end
 
 def macro_call?(ast, env)
@@ -91,10 +110,12 @@ def EVAL(ast, env)
         ast = a2 # Continue loop (TCO)
     when :quote
         return a1
+    when :quasiquoteexpand
+        return quasiquote(a1);
     when :quasiquote
         ast = quasiquote(a1); # Continue loop (TCO)
     when :defmacro!
-        func = EVAL(a2, env)
+        func = EVAL(a2, env).clone
         func.is_macro = true
         return env.set(a1, func)
     when :macroexpand
@@ -117,7 +138,7 @@ def EVAL(ast, env)
             if a2 && a2[0] == :"catch*"
                 return EVAL(a2[2], Env.new(env, [a2[1]], [exc]))
             else
-                raise esc
+                raise exc
             end
         end
     when :do
@@ -167,11 +188,8 @@ repl_env.set(:"*ARGV*", List.new(ARGV.slice(1,ARGV.length) || []))
 # core.mal: defined using the language itself
 RE["(def! *host-language* \"ruby\")"]
 RE["(def! not (fn* (a) (if a false true)))"]
-RE["(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \")\")))))"]
+RE["(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))"]
 RE["(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))"]
-RE["(def! *gensym-counter* (atom 0))"]
-RE["(def! gensym (fn* [] (symbol (str \"G__\" (swap! *gensym-counter* (fn* [x] (+ 1 x)))))))"]
-RE["(defmacro! or (fn* (& xs) (if (empty? xs) nil (if (= 1 (count xs)) (first xs) (let* (condvar (gensym)) `(let* (~condvar ~(first xs)) (if ~condvar ~condvar (or ~@(rest xs)))))))))"]
 
 if ARGV.size > 0
     RE["(load-file \"" + ARGV[0] + "\")"]
@@ -184,7 +202,11 @@ while line = _readline("user> ")
     begin
         puts REP[line]
     rescue Exception => e
-        puts "Error: #{e}" 
+        if e.is_a? MalException
+            puts "Error: #{_pr_str(e.data, true)}" 
+        else
+            puts "Error: #{e}" 
+        end
         puts "\t#{e.backtrace.join("\n\t")}"
     end
 end

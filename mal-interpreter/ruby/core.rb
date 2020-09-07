@@ -11,7 +11,7 @@ $core_ns = {
     :string? =>   lambda {|a| (a.is_a? String) && "\u029e" != a[0]},
     :symbol =>    lambda {|a| a.to_sym},
     :symbol? =>   lambda {|a| a.is_a? Symbol},
-    :keyword =>   lambda {|a| "\u029e"+a},
+    :keyword =>   lambda {|a| (a.is_a? String) && "\u029e" == a[0] ? a : "\u029e"+a},
     :keyword? =>  lambda {|a| (a.is_a? String) && "\u029e" == a[0]},
     :number? =>   lambda {|a| a.is_a? Numeric},
     :fn? =>       lambda {|a| (a.is_a? Proc) && (!(a.is_a? Function) || !a.is_macro)},
@@ -48,6 +48,7 @@ $core_ns = {
     :vals =>      lambda {|a| List.new a.values},
 
     :sequential? => lambda {|a| sequential?(a)},
+    :vec =>       lambda {|a| Vector.new a},
     :cons =>      lambda {|a,b| List.new(b.clone.insert(0,a))},
     :concat =>    lambda {|*a| List.new(a && a.reduce(:+) || [])},
     :nth =>       lambda {|a,b| raise "nth: index out of range" if b >= a.size; a[b]},
