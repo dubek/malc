@@ -56,3 +56,21 @@
 ;; EXPECTED: ()
 (println (rest [11]))
 ;; EXPECTED: ()
+
+(println (vec (list)))
+;; EXPECTED: []
+(println (vec (list 1)))
+;; EXPECTED: [1]
+(println (vec (list 1 2)))
+;; EXPECTED: [1 2]
+(println (vec []))
+;; EXPECTED: []
+(println (vec [1 2]))
+;; EXPECTED: [1 2]
+
+;; Testing that vec does not mutate the original list
+(def! c (list 1 2))
+(println (vec c))
+;; EXPECTED: [1 2]
+(println c)
+;; EXPECTED: (1 2)

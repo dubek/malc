@@ -4,6 +4,12 @@
 
 (def! vector (fn* [& args] (_concat_elementarrays 34 args [])))
 
+(def! vec
+  (fn* [a]
+    (if (vector? a)
+      a
+      (_concat_elementarrays 34 a []))))
+
 (def! hash-map (fn* [& args] (hash-map-from-list args)))
 
 (def! assoc-list
