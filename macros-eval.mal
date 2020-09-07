@@ -4,146 +4,122 @@
 (load-file "macros-core.mal")
 
 ;; read
-(def! READ (fn* [strng]
-  (read-string strng)))
+(def! READ read-string)
 
 
 ;; eval
-(def! is-pair (fn* [x]
-  (if (sequential? x)
-    (if (> (count x) 0)
-      true))))
 
+(def! qq-loop (fn* [elt acc]
+  (if (if (list? elt) (= (first elt) 'splice-unquote)) ; 2nd 'if' means 'and'
+    (list 'concat (nth elt 1) acc)
+    (list 'cons (QUASIQUOTE elt) acc))))
+(def! qq-foldr (fn* [xs]
+  (if (empty? xs)
+    (list)
+    (qq-loop (first xs) (qq-foldr (rest xs))))))
 (def! QUASIQUOTE (fn* [ast]
   (cond
-    (not (is-pair ast))
-    (list 'quote ast)
-
-    (= 'unquote (first ast))
-    (nth ast 1)
-
-    (if (is-pair (first ast))
-      (if (= 'splice-unquote (first (first ast)))
-        true))
-    (list 'concat (nth (first ast) 1) (QUASIQUOTE (rest ast)))
-
-    "else"
-    (list 'cons (QUASIQUOTE (first ast)) (QUASIQUOTE (rest ast))))))
-
-(def! is-macro-call (fn* [ast env]
-  (if (list? ast)
-    (let* [a0 (first ast)]
-      (if (symbol? a0)
-        (if (env-find env a0)
-          (let* [m (meta (env-get env a0))]
-            (if m
-              (if (get m "ismacro")
-                true)))))))))
+    (vector? ast)            (list 'vec (qq-foldr ast))
+    (map? ast)               (list 'quote ast)
+    (symbol? ast)            (list 'quote ast)
+    (not (list? ast))        ast
+    (= (first ast) 'unquote) (nth ast 1)
+    "else"                   (qq-foldr ast))))
 
 (def! MACROEXPAND (fn* [ast env]
-  (if (is-macro-call ast env)
-    (let* [mac (env-get env (first ast))]
-      (MACROEXPAND (apply mac (rest ast)) env))
-    ast)))
+  (let* [a0 (if (list? ast) (first ast))
+         e  (if (symbol? a0) (env-find env a0))
+         m  (if e (env-get e a0))]
+    (if (_macro? m)
+      (MACROEXPAND (apply (get m :__MAL_MACRO__) (rest ast)) env)
+      ast))))
 
-(def! eval-ast (fn* [ast env] (do
-  ;;(do (prn "eval-ast" ast "/" (keys env)) )
+(def! eval-ast (fn* [ast env]
+  ;; (do (prn "eval-ast" ast "/" (keys env)) )
   (cond
     (symbol? ast) (env-get env ast)
 
     (list? ast)   (map (fn* [exp] (EVAL exp env)) ast)
 
-    (vector? ast) (apply vector (map (fn* [exp] (EVAL exp env)) ast))
+    (vector? ast) (vec (map (fn* [exp] (EVAL exp env)) ast))
 
     (map? ast)    (apply hash-map
-                      (apply concat
-                        (map (fn* [k] [k (EVAL (get ast k) env)])
-                             (keys ast))))
+                    (apply concat
+                      (map (fn* [k] [k (EVAL (get ast k) env)])
+                           (keys ast))))
 
-    "else"        ast))))
+    "else"        ast)))
 
-(def! LET (fn* [env args]
-  (if (> (count args) 0)
+(def! LET (fn* [env binds form]
+  (if (empty? binds)
+    (EVAL form env)
     (do
-      (env-set env (nth args 0) (EVAL (nth args 1) env))
-      (LET env (rest (rest args)))))))
+      (env-set env (first binds) (EVAL (nth binds 1) env))
+      (LET env (rest (rest binds)) form)))))
 
-(def! EVAL (fn* [ast env] (do
-  ;;(do (prn "EVAL" ast "/" (keys @env)) )
-  (if (not (list? ast))
-    (eval-ast ast env)
+(def! EVAL (fn* [ast env]
+  ;; (do (prn "EVAL" ast "/" (keys @env)) )
+  (let* [ast (MACROEXPAND ast env)]
+    (if (not (list? ast))
+      (eval-ast ast env)
 
-    ;; apply list
-    (let* [ast (MACROEXPAND ast env)]
-      (if (not (list? ast))
-        (eval-ast ast env)
+      ;; apply list
+      (let* [a0 (first ast)]
+        (cond
+          (empty? ast)
+          ast
 
-        (let* [a0 (first ast)]
-          (cond
-            (= 'def! a0)
-            (env-set env (nth ast 1) (EVAL (nth ast 2) env))
+          (= 'def! a0)
+          (env-set env (nth ast 1) (EVAL (nth ast 2) env))
 
-            (= 'let* a0)
-            (let* [let-env (new-env env)]
-              (do
-                (LET let-env (nth ast 1))
-                (EVAL (nth ast 2) let-env)))
+          (= 'let* a0)
+          (LET (new-env env) (nth ast 1) (nth ast 2))
 
-            (= 'quote a0)
-            (nth ast 1)
+          (= 'quote a0)
+          (nth ast 1)
 
-            (= 'quasiquote a0)
-            (let* [a1 (nth ast 1)]
-              (EVAL (QUASIQUOTE a1) env))
+          (= 'quasiquoteexpand a0)
+          (QUASIQUOTE (nth ast 1))
 
-            (= 'defmacro! a0)
-            (let* [a1 (nth ast 1)
-                   a2 (nth ast 2)
-                   f (EVAL a2 env)
-                   m (or (meta f) {})
-                   mac (with-meta f (assoc m "ismacro" true))]
-              (env-set env a1 mac))
+          (= 'quasiquote a0)
+          (EVAL (QUASIQUOTE (nth ast 1)) env)
 
-            (= 'macroexpand a0)
-            (let* [a1 (nth ast 1)]
-              (MACROEXPAND a1 env))
+          (= 'defmacro! a0)
+          (env-set env (nth ast 1) (hash-map :__MAL_MACRO__
+                                             (EVAL (nth ast 2) env)))
 
-            (= 'try* a0)
-            (if (= 'catch* (nth (nth ast 2) 0))
-              (try*
-                (EVAL (nth ast 1) env)
-                (catch* exc
-                  (EVAL (nth (nth ast 2) 2)
-                        (new-env env
-                                 [(nth (nth ast 2)1)]
-                                 [exc]))))
-              (EVAL (nth ast 1) env))
+          (= 'macroexpand a0)
+          (MACROEXPAND (nth ast 1) env)
 
-            (= 'do a0)
-            (let* [el (eval-ast (rest ast) env)]
-              (nth el (- (count el) 1)))
+          (= 'try* a0)
+          (if (< (count ast) 3)
+            (EVAL (nth ast 1) env)
+            (try*
+              (EVAL (nth ast 1) env)
+              (catch* exc
+                (let* [a2 (nth ast 2)]
+                  (EVAL (nth a2 2) (new-env env [(nth a2 1)] [exc]))))))
 
-            (= 'if a0)
-            (let* [cond (EVAL (nth ast 1) env)]
-              (if (or (= cond nil) (= cond false))
-                (if (> (count ast) 3)
-                  (EVAL (nth ast 3) env)
-                  nil)
-                (EVAL (nth ast 2) env)))
+          (= 'do a0)
+          (let* [el (eval-ast (rest ast) env)]
+            (nth el (- (count el) 1)))
 
-            (= 'fn* a0)
-            (fn* [& args]
-              (EVAL (nth ast 2) (new-env env (nth ast 1) args)))
+          (= 'if a0)
+          (if (EVAL (nth ast 1) env)
+            (EVAL (nth ast 2) env)
+            (if (> (count ast) 3)
+              (EVAL (nth ast 3) env)))
 
-            "else"
-            (let* [el (eval-ast ast env)
-                  f (first el)
-                  args (rest el)]
-              (apply f args))))))))))
+          (= 'fn* a0)
+          (fn* [& args] (EVAL (nth ast 2) (new-env env (nth ast 1) args)))
+
+          "else"
+          (let* [el (eval-ast ast env)]
+            (apply (first el) (rest el)))))))))
 
 
 ;; print
-(def! PRINT (fn* [exp] (pr-str exp)))
+(def! PRINT pr-str)
 
 ;; repl
 (def! repl-env (new-env))
@@ -151,35 +127,28 @@
   (PRINT (EVAL (READ strng) repl-env))))
 
 ;; core.mal: defined directly using mal
-(map (fn* [data] (env-set repl-env (nth data 0) (nth data 1))) core_ns)
+(map (fn* [data] (apply env-set repl-env data)) core_ns)
 (env-set repl-env 'eval (fn* [ast] (EVAL ast repl-env)))
 (env-set repl-env '*ARGV* (rest *ARGV*))
 
-;; core.mal: defined using the new language itself 
+;; core.mal: defined using the new language itself
 (rep (str "(def! *host-language* \"" *host-language* "-mal\")"))
 (rep "(def! not (fn* [a] (if a false true)))")
-(rep "(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \")\")))))")
+(rep "(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))")
 (rep "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))")
-(rep "(def! *gensym-counter* (atom 0))")
-(rep "(def! gensym (fn* [] (symbol (str \"G__\" (swap! *gensym-counter* (fn* [x] (+ 1 x)))))))")
-(rep "(defmacro! or (fn* (& xs) (if (empty? xs) nil (if (= 1 (count xs)) (first xs) (let* (condvar (gensym)) `(let* (~condvar ~(first xs)) (if ~condvar ~condvar (or ~@(rest xs)))))))))")
 
 ;; repl loop
-(def! repl-loop (fn* []
-  (let* [line (readline "mal-user> ")]
-    (if line
-      (do
-        (if (not (= "" line))
-          (try*
-            (println (rep line))
-            (catch* exc
-              (println "Uncaught exception:" exc))))
-        (repl-loop))))))
+(def! repl-loop (fn* [line]
+  (if line
+    (do
+      (if (not (= "" line))
+        (try*
+          (println (rep line))
+          (catch* exc
+            (println "Uncaught exception:" exc))))
+      (repl-loop (readline "mal-user> "))))))
 
-;(def! -main (fn* [& args] 
-;  (if (> (count args) 0)
-;    (rep (str "(load-file \"" (first args) "\")"))
-;    (do
-;      (rep "(println (str \"Mal [\" *host-language* \"]\"))")
-;      (repl-loop)))))
-;(apply -main *ARGV*)
+;; main
+;(if (empty? *ARGV*)
+;  (repl-loop "(println (str \"Mal [\" *host-language* \"]\"))")
+;  (rep (str "(load-file \"" (first *ARGV*) "\")")))
