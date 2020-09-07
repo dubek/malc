@@ -52,23 +52,14 @@ Collection shared library (`libgc.so`) and with the readline shared library.
 
 To install the dependencies on Debian/Ubuntu:
 
-    sudo apt-get install llvm-4.0 clang-4.0 lld-4.0 libstdc++-5-dev libgc-dev libreadline6-dev
-
-In order to make sure the LLVM commands are accessible without the version number, run:
-
-    sudo update-alternatives --install /usr/bin/llvm-config llvm-config   /usr/lib/llvm-4.0/bin/llvm-config   100
-    sudo update-alternatives --install /usr/bin/clang       clang         /usr/lib/llvm-4.0/bin/clang         100
-    sudo update-alternatives --install /usr/bin/clang++     clang++       /usr/lib/llvm-4.0/bin/clang++       100
-    sudo update-alternatives --install /usr/bin/opt         opt           /usr/lib/llvm-4.0/bin/opt           100
-    sudo update-alternatives --install /usr/bin/llc         llc           /usr/lib/llvm-4.0/bin/llc           100
-    sudo update-alternatives --install /usr/bin/ld.lld      ld.lld        /usr/lib/llvm-4.0/bin/ld.lld        100
+    sudo apt install libreadline-dev libgc-dev libstdc++-10-dev llvm clang lld
 
 Besides these dependencies, malc needs a working Mal interpreter in order to
 compile itself.  malc comes bundled with the Ruby implementation of the Mal
 interpreter (in `mal-interpreter` directory) for an easier invocation of malc.
-Hence, a working Ruby runtime is required.  Alternatively, you can choose
-another Mal interpreter implementation using the `MAL_IMPL` environment
-variable; see below.
+Hence, a working Ruby runtime is required (`sudo apt install ruby` should do
+it).  Alternatively, you can choose another Mal interpreter implementation
+using the `MAL_IMPL` environment variable; see below.
 
 ### Bootstrapping
 
