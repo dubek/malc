@@ -1,16 +1,16 @@
-sudo: required
-matrix:
-  include:
-    - env: DOCKER_IMAGE=dubek/malc-llvm-4.0
-      services:
-        - docker
-    - env: DOCKER_IMAGE=dubek/malc-llvm-5.0
-      services:
-        - docker
-language: c
-before_install:
-  - docker pull $DOCKER_IMAGE
-  - mkdir -p external
-  - git clone --depth 1 https://github.com/kanaka/mal.git external/mal
+dist: bionic
+addons:
+  apt:
+    packages:
+      - libreadline-dev
+      - libgc-dev
+      - libstdc++-5-dev
+      - llvm
+      - clang
+      - lld
+      - ruby
 script:
-  - docker run -it --rm -u $(id -u) -v $(pwd):/mnt $DOCKER_IMAGE sh -c "cd /mnt && ./bootstrap.sh && ./runtests.sh && ./runperf.sh && ./run-mal-tests.sh"
+- ./bootstrap.sh
+- ./runtests.sh
+- ./runperf.sh
+- ./run-mal-tests.sh
