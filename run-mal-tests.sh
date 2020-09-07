@@ -9,7 +9,7 @@ if [ ! -d external/mal ] ; then
   mkdir -p external
   git clone --depth 1 https://github.com/kanaka/mal.git external/mal
 fi
-cd external/mal/mal
+cd external/mal/impls/mal
 
 # Note that mal doesn't have a step5 implementation
 STEPS="
@@ -27,7 +27,7 @@ stepA_mal
 
 for step in $STEPS ; do
   $MALC -v -c ${step}.mal
-  ../runtest.py --deferrable --optional ../tests/${step}.mal -- ./${step}
+  python3 ../../runtest.py --deferrable --optional ../tests/${step}.mal -- ./${step}
 done
 
 echo ""
