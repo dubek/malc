@@ -19,11 +19,10 @@ LLVM.  It is not intended for use in any serious application or system.
 
 ## Using malc from a ready-made Docker image
 
-The public Docker image `dubek/malc-llvm-4.0` has malc installed in /opt/malc
-(also in `$PATH`). Here's an example of compiling and running a small Mal
-program:
+The public Docker image `dubek/malc` has malc installed in /opt/malc (also in
+`$PATH`). Here's an example of compiling and running a small Mal program:
 
-    $ docker run -it --rm dubek/malc-llvm-4.0
+    $ docker run -it --rm dubek/malc
     root@c6cf6e2ec3eb:/# cd tmp
     root@c6cf6e2ec3eb:/tmp# echo '(prn "test" (+ 23 45))' > test.mal
     root@c6cf6e2ec3eb:/tmp# malc -v -c test.mal
