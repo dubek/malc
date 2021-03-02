@@ -273,10 +273,11 @@ A lot. See the [TODO list](doc/TODO.md).
 
 ## Related reading
 
-* [Structure and Interpretation of Computer Programs: 5.5 - Compilation](https://mitpress.mit.edu/sicp/full-text/book/book-Z-H-35.html) by Harold Abelson and Gerald Jay Sussman with Julie Sussman
+* [Structure and Interpretation of Computer Programs: 5.5 - Compilation](https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/book-Z-H-35.html#%_sec_5.5) by Harold Abelson and Gerald Jay Sussman with Julie Sussman
 * [LLVM Language Reference Manual](http://llvm.org/docs/LangRef.html)
 * [Exception Handling](http://llvm.org/docs/ExceptionHandling.html)
-* [Mapping High-Level Constructs to LLVM IR](http://llvm.lyngvig.org/Articles/Mapping-High-Level-Constructs-to-LLVM-IR) by Mikael Lyngvig
+* [Mapping High-Level Constructs to LLVM IR](https://mapping-high-level-constructs-to-llvm-ir.readthedocs.io/en/latest/README.html#) by Mikael Lyngvig and 
+Michael Rodler
 * [Boehm-Demers-Weiser Garbage Collector](http://www.hboehm.info/gc/)
 
 
