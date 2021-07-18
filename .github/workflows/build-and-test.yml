@@ -1,0 +1,29 @@
+name: build-and-test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install packages
+      run: sudo apt-get install -y libreadline-dev libgc-dev llvm clang lld ruby
+
+    - uses: actions/checkout@v2
+
+    - name: Build and bootstrap
+      run: ./bootstrap.sh
+
+    - name: Test
+      run: ./runtests.sh
+
+    - name: Perf
+      run: ./runperf.sh
+
+    - name: Mal tests
+      run: ./run-mal-tests.sh
