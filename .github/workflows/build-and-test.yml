@@ -14,7 +14,7 @@ jobs:
     - name: Install packages
       run: sudo apt-get install -y libreadline-dev libgc-dev llvm clang lld ruby
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Build and bootstrap
       run: ./bootstrap.sh
