@@ -1,8 +1,8 @@
 # Mal interpreter
 
-This directory includes a copy of the code of the Ruby implementation of Mal
-interpreter written by Joel Martin. It is copied from the [`ruby` directory of
-the Mal project](https://github.com/kanaka/mal/tree/master/ruby).  It is used
+This directory includes a copy of the code of the Python implementation of Mal
+interpreter written by Joel Martin. It is copied from the [`python` directory of
+the Mal project](https://github.com/kanaka/mal/tree/master/impls/python).  It is used
 for easy bootstrapping of malc.
 
 You can use any other Mal interepreter by setting the `MAL_IMPL` environment

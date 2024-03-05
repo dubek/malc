@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install packages
-      run: sudo apt-get install -y libreadline-dev libgc-dev llvm clang lld ruby
+      run: sudo apt-get install -y libreadline-dev libgc-dev llvm clang lld
 
     - uses: actions/checkout@v4
 

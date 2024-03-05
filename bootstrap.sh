@@ -13,7 +13,7 @@ fi
 
 if [ -z "$MAL_IMPL" ] ; then
   log "\$MAL_IMPL is not set; using built-in default Mal interpreter"
-  export MAL_IMPL="./mal-interpreter/ruby/run"
+  export MAL_IMPL="./mal-interpreter/python/run"
 fi
 
 log "Compiling mal-to-llvm.mal ..."

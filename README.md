@@ -54,10 +54,10 @@ To install the dependencies on Debian/Ubuntu:
     sudo apt install libreadline-dev libgc-dev llvm clang lld
 
 Besides these dependencies, malc needs a working Mal interpreter in order to
-compile itself.  malc comes bundled with the Ruby implementation of the Mal
+compile itself.  malc comes bundled with the Python implementation of the Mal
 interpreter (in `mal-interpreter` directory) for an easier invocation of malc.
-Hence, a working Ruby runtime is required (`sudo apt install ruby` should do
-it).  Alternatively, you can choose another Mal interpreter implementation
+Hence, a working Python runtime is required (`sudo apt install python3` should
+do it).  Alternatively, you can choose another Mal interpreter implementation
 using the `MAL_IMPL` environment variable; see below.
 
 ### Bootstrapping
@@ -71,16 +71,16 @@ read this sentence again now).  The `bootstrap.sh` script does exactly that:
 This will create the `mal-to-llvm` executable, which is used by the `malc`
 wrapper script.  Now malc is ready to use.
 
-By default, `bootstrap.sh` uses the bundled Ruby implementation of the Mal
+By default, `bootstrap.sh` uses the bundled Python implementation of the Mal
 interpreter.  To use another implementation during bootstrapping, set the
 `MAL_IMPL` environment variable to the path of the Mal implementation
 executable.  For example:
 
-    # Bootstrap using the Python implementation:
-    MAL_IMPL=../mal/python/run ./bootstrap.sh
+    # Bootstrap using the Ruby implementation:
+    MAL_IMPL=../mal/impls/ruby/run ./bootstrap.sh
 
     # Bootstrap using the OCaml implementation:
-    MAL_IMPL=../mal/ocaml/stepA_mal ./bootstrap.sh
+    MAL_IMPL=../mal/impls/ocaml/stepA_mal ./bootstrap.sh
 
 
 ## Usage
