@@ -73,7 +73,7 @@ log "Intermediate LLVM IR file: ${outfile}.ll"
 
 # Compile mal to LLVM IR
 log "Compiling Mal program to LLVM IR"
-if [ -n "$MAL_IMPL" ] ; then
+if [ -n "${MAL_IMPL:-}" ] ; then
   MAL_IMPL=$(readlink -f ${MAL_IMPL})
   log "Using Mal interpreter: ${MAL_IMPL} $bindir/mal-to-llvm.mal"
   ${MAL_IMPL} $bindir/mal-to-llvm.mal $compile_mode $bindir $srcfile > "${outfile}.ll"
@@ -92,7 +92,7 @@ llc -filetype=obj "${outfile}.opt.ll" -o "${outfile}.o"
 
 # Link
 log "Linking executable file: ${outfile}"
-clang -fuse-ld=lld -g "${outfile}.o" -lgc -lreadline -lstdc++ -o "${outfile}"
+clang -no-pie -g "${outfile}.o" -lgc -lreadline -lstdc++ -o "${outfile}"
 
 # Cleanup
 log "Cleaning up"
