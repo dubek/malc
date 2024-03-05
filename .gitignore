@@ -2,3 +2,4 @@
 /perf/tmp
 /mal-to-llvm
 /external
+__pycache__
