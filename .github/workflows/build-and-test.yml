@@ -37,7 +37,7 @@ jobs:
       run: |
         brew update
         brew install readline bdw-gc llvm
-        echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> $HOME/.bash_profile
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - uses: actions/checkout@v4
 
