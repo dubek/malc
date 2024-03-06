@@ -12,7 +12,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install packages
-      run: sudo apt-get install -y libreadline-dev libgc-dev llvm clang lld
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libreadline-dev libgc-dev llvm clang
+
+    - uses: actions/checkout@v4
+
+    - name: Build and bootstrap
+      run: ./bootstrap.sh
+
+    - name: Test
+      run: ./runtests.sh
+
+    - name: Perf
+      run: ./runperf.sh
+
+    - name: Mal tests
+      run: ./run-mal-tests.sh
+
+  build-macos:
+    runs-on: macos-14
+    steps:
+    - name: Install packages
+      run: |
+        brew update
+        brew install readline bdw-gc llvm
 
     - uses: actions/checkout@v4
 
