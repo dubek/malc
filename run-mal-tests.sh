@@ -7,9 +7,16 @@ set -e
 MALC="$PWD/malc"
 if [ ! -d external/mal ] ; then
   mkdir -p external
-  git clone --depth 1 https://github.com/kanaka/mal.git external/mal
+  git clone --depth 500 https://github.com/kanaka/mal.git external/mal
 fi
 cd external/mal/impls/mal
+
+# Checkout the last mal version in which the self-hosted implementation (mal
+# interpreter implemented in mal) doesn't use the `eval` function.  The
+# following mal commit c1963a43aab1fd222fa7155ea3d5bf728bcc4a07 simplies the
+# implementation a bit by using `eval`.  Since malc doesn't support `eval`, we
+# can't use it.
+git checkout 770aae175f90237055bb944249e990def8aefc76
 
 # Note that mal doesn't have a step5 implementation
 STEPS="
