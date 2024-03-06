@@ -32,6 +32,9 @@ jobs:
 
   build-macos:
     runs-on: macos-14
+    env:
+      LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/Cellar/bdw-gc/8.2.6/lib"
+
     steps:
     - name: Install packages
       run: |
