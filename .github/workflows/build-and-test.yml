@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Build and bootstrap
-      run: /opt/homebrew/opt/llvm/bin ./bootstrap.sh
+      run: ./bootstrap.sh
 
     - name: Test
       run: ./runtests.sh
@@ -41,6 +41,9 @@ jobs:
         brew update
         brew install readline bdw-gc llvm
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+
+    - name: Find libgc
+      run: find /opt/homebrew/Cellar/bdw-gc -ls
 
     - uses: actions/checkout@v4
 
