@@ -12,7 +12,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install packages
-      run: sudo apt-get install -y libreadline-dev libgc-dev llvm clang lld
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libreadline-dev libgc-dev llvm clang
+
+    - uses: actions/checkout@v4
+
+    - name: Build and bootstrap
+      run: ./bootstrap.sh
+
+    - name: Test
+      run: ./runtests.sh
+
+    - name: Perf
+      run: ./runperf.sh
+
+    - name: Mal tests
+      run: ./run-mal-tests.sh
+
+  build-macos:
+    runs-on: macos-14
+    env:
+      LDFLAGS: "-L/opt/homebrew/opt/llvm/lib -L/opt/homebrew/Cellar/bdw-gc/8.2.6/lib"
+
+    steps:
+    - name: Install packages
+      run: |
+        brew update
+        brew install readline bdw-gc llvm
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+
+    - name: Find libgc
+      run: find /opt/homebrew/Cellar/bdw-gc -ls
 
     - uses: actions/checkout@v4
 
